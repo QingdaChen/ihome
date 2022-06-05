@@ -1,0 +1,28 @@
+syntax = "proto3";
+package user;
+option go_package = "./";
+
+message SMSRequest{
+  string phone = 1;
+  string imgCode = 2;
+  string uuid = 3;
+}
+
+message RegRequest{
+  string phone = 1;
+  string password = 2;
+  string smsCode = 3;
+}
+
+
+message Response{
+  //返回错误码和信息
+  string errno = 1;
+  string errmsg = 2;
+}
+
+service UserService{
+  rpc SendSMS(SMSRequest) returns (Response) {}
+  rpc Register(SMSRequest) returns (Response) {}
+
+}

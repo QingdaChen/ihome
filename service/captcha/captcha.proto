@@ -1,0 +1,16 @@
+syntax = "proto3";
+package captcha;
+option go_package = "./captcha";
+
+message Request{
+  string uuid = 1;
+}
+
+message Response{
+  //使用切片存储图片信息, 用 json 序列化
+  bytes img = 1;
+}
+
+service CaptchaService{
+  rpc GetCaptcha(Request) returns (Response) {}
+}
