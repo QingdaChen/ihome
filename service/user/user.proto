@@ -24,5 +24,4 @@ message Response{
 service UserService{
   rpc SendSMS(SMSRequest) returns (Response) {}
   rpc Register(SMSRequest) returns (Response) {}
-
 }
