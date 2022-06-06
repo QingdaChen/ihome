@@ -37,8 +37,11 @@ func (s *UserServiceImpl) SendSMS(ctx context.Context, req *kitex_gen.SMSRequest
 }
 
 // Register implements the UserServiceImpl interface.
-func (s *UserServiceImpl) Register(ctx context.Context, req *kitex_gen.SMSRequest) (resp *kitex_gen.Response, err error) {
-	// TODO: Your code here...
+func (s *UserServiceImpl) Register(ctx context.Context, req *kitex_gen.RegRequest) (resp *kitex_gen.Response, err error) {
+
+	utils.NewLog().Info("Register...", req.Phone+":"+req.Password+":"+req.SmsCode)
+	errs := model.CheckSMSCode(req.Phone, req.SmsCode)
+	utils.NewLog().Info("Register...", errs)
 
 	return
 }

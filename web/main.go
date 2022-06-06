@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"ihome/web/controller"
 	"ihome/web/model"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -19,10 +20,7 @@ func main() {
 
 	//linux
 	router.Static("/home", "view")
-	//开启监听
-	//router.GET("/", func(context *gin.Context) {
-	//	context.Writer.WriteString("hhhh")
-	//})
+
 	v1 := router.Group("/api/v1.0")
 	{
 		v1.GET("/session", controller.GetSession)
