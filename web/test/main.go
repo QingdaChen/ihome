@@ -1,15 +1,20 @@
 package main
 
 import (
-	"github.com/afocus/captcha"
+	"ihome/service/user/utils"
 )
 
-var cap *captcha.Captcha
+func testEncryption() {
+	mysqlPasswd := utils.Encryption("123456")
+	utils.NewLog().Info("mysqlPasswd:", mysqlPasswd)
+	utils.NewLog().Info("", utils.CheckPasswd("123456", mysqlPasswd))
 
+}
 func main() {
 
 	//TestRedis2()
 	//test()
-	TestMysql()
+	//TestMysql()
+	testEncryption()
 
 }

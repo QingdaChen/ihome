@@ -10,7 +10,7 @@ import (
 
 func TestImgCode() {
 
-	cap = captcha.New()
+	cap := captcha.New()
 	//cap.SetFont("")
 	if err := cap.SetFont("comic.ttf"); err != nil {
 		//if err := cap.SetFont("C:/Windows/Fonts/ariblk.ttf"); err != nil {

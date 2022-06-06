@@ -41,7 +41,21 @@ func (s *UserServiceImpl) Register(ctx context.Context, req *kitex_gen.RegReques
 
 	utils.NewLog().Info("Register...", req.Phone+":"+req.Password+":"+req.SmsCode)
 	errs := model.CheckSMSCode(req.Phone, req.SmsCode)
-	utils.NewLog().Info("Register...", errs)
-
-	return
+	response := &kitex_gen.Response{}
+	if errs != nil {
+		utils.NewLog().Error("CheckSMSCode error", errs)
+		response.Errno = utils.RECODE_REQERR
+		response.Errmsg = utils.RecodeText(utils.RECODE_REQERR)
+		return response, errs
+	}
+	errs = model.Register(req.Phone, req.Password)
+	if errs != nil {
+		utils.NewLog().Error("Register error", errs)
+		response.Errno = utils.RECODE_REQERR
+		response.Errmsg = utils.RecodeText(utils.RECODE_REQERR)
+		return response, errs
+	}
+	response.Errno = utils.RECODE_OK
+	response.Errmsg = utils.RecodeText(utils.RECODE_OK)
+	return response, nil
 }
