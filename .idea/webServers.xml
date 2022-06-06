@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="b3e09829-5f91-4a96-a755-c5a0d936e019" name="cqd_vm">
+        <fileTransfer rootFolder="/home/goproject/ihome" accessType="SFTP" host="192.168.31.219" port="22" sshConfigId="2ca3197e-5d53-44c1-8a0d-10c800e02cb0" sshConfig="root@192.168.31.219:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
