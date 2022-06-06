@@ -146,7 +146,7 @@ func registerHandler(ctx context.Context, handler interface{}, arg, result inter
 	switch s := arg.(type) {
 	case *streaming.Args:
 		st := s.Stream
-		req := new(kitex_gen.SMSRequest)
+		req := new(kitex_gen.RegRequest)
 		if err := st.RecvMsg(req); err != nil {
 			return err
 		}
@@ -176,7 +176,7 @@ func newRegisterResult() interface{} {
 }
 
 type RegisterArgs struct {
-	Req *kitex_gen.SMSRequest
+	Req *kitex_gen.RegRequest
 }
 
 func (p *RegisterArgs) Marshal(out []byte) ([]byte, error) {
@@ -187,7 +187,7 @@ func (p *RegisterArgs) Marshal(out []byte) ([]byte, error) {
 }
 
 func (p *RegisterArgs) Unmarshal(in []byte) error {
-	msg := new(kitex_gen.SMSRequest)
+	msg := new(kitex_gen.RegRequest)
 	if err := proto.Unmarshal(in, msg); err != nil {
 		return err
 	}
@@ -195,9 +195,9 @@ func (p *RegisterArgs) Unmarshal(in []byte) error {
 	return nil
 }
 
-var RegisterArgs_Req_DEFAULT *kitex_gen.SMSRequest
+var RegisterArgs_Req_DEFAULT *kitex_gen.RegRequest
 
-func (p *RegisterArgs) GetReq() *kitex_gen.SMSRequest {
+func (p *RegisterArgs) GetReq() *kitex_gen.RegRequest {
 	if !p.IsSetReq() {
 		return RegisterArgs_Req_DEFAULT
 	}
@@ -265,7 +265,7 @@ func (p *kClient) SendSMS(ctx context.Context, Req *kitex_gen.SMSRequest) (r *ki
 	return _result.GetSuccess(), nil
 }
 
-func (p *kClient) Register(ctx context.Context, Req *kitex_gen.SMSRequest) (r *kitex_gen.Response, err error) {
+func (p *kClient) Register(ctx context.Context, Req *kitex_gen.RegRequest) (r *kitex_gen.Response, err error) {
 	var _args RegisterArgs
 	_args.Req = Req
 	var _result RegisterResult

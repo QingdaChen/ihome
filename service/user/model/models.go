@@ -1,8 +1,11 @@
-package models
+package model
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"ihome/web/conf"
+	"ihome/web/utils"
 	"time"
 )
 
@@ -66,8 +69,8 @@ type HouseImage struct {
 /* 订单 table_name = order */
 type OrderHouse struct {
 	gorm.Model            //订单编号
-	UserId      uint      `json:"user_id"` //下单的用户编号   //与用户表进行关联
-	HouseId     uint      `json:"house_id"` //预定的房间编号   //与房屋信息进行关联
+	UserId      uint      `json:"user_id"`       //下单的用户编号   //与用户表进行关联
+	HouseId     uint      `json:"house_id"`      //预定的房间编号   //与房屋信息进行关联
 	Begin_date  time.Time `gorm:"type:datetime"` //预定的起始时间
 	End_date    time.Time `gorm:"type:datetime"` //预定的结束时间
 	Days        int       //预定总天数
@@ -78,16 +81,22 @@ type OrderHouse struct {
 	Credit      bool      //表示个人征信情况 true表示良好
 }
 
-func InitDb() (*gorm.DB, error) {
+var MysqlConn *gorm.DB
+
+func InitDb() {
 	//sql.Open()
-	db, err := gorm.Open("mysql", "root:220108@tcp(192.168.31.220:3306)/test?charset=utf8")
+	str := fmt.Sprintf("%s:%s@tcp(%s:%d)/search_house?charset=utf8&parseTime=True&loc=Local",
+		conf.MysqlUser, conf.MysqlPasswd, conf.MysqlIp, conf.MysqlPort)
+	utils.NewLog().Info(str)
+	db, err := gorm.Open("mysql", str)
 	defer db.Close()
-	if err == nil {
-		db.SingularTable(true)
-		db.AutoMigrate(new(User), new(House), new(Area), new(Facility), new(HouseImage), new(OrderHouse))
-		/*db.DB().SetMaxIdleConns(10)
-		db.DB().SetConnMaxLifetime(100)*/
-		return db, nil
+	if err != nil {
+		utils.NewLog().Error("mysql connect error...", err)
 	}
-	return nil, err
+	MysqlConn = db
+	MysqlConn.DB().SetMaxIdleConns(10)
+	MysqlConn.DB().SetConnMaxLifetime(100)
+	MysqlConn.SingularTable(true)
+	MysqlConn.AutoMigrate(new(User), new(House), new(Area), new(Facility), new(HouseImage), new(OrderHouse))
+
 }
