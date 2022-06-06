@@ -89,12 +89,29 @@ func SendSMSCode(phone, imgCode, uuid string) error {
 func SaveSMSCode(phone, code string) error {
 	conn := Client.Conn(ctx)
 	defer conn.Close()
-	_, err := conn.SetEX(ctx, phone+"_"+code, code, conf.PhoneCodeTimeOut*time.Minute).Result()
-	utils.NewLog().Info("save err...", err)
+	_, err := conn.SetEX(ctx, phone+"_smsCode", code, conf.PhoneCodeTimeOut*time.Minute).Result()
+	utils.NewLog().Info("save err:", err)
 	if err != nil {
-		utils.NewLog().Error("SaveSMSCode error", err)
+		utils.NewLog().Error("SaveSMSCode error:", err)
 		return errors.New("SaveSMSCd error")
 	}
 	return nil
 
+}
+
+func CheckSMSCode(phone, smsCode string) error {
+	conn := Client.Conn(ctx)
+	defer conn.Close()
+	result, err := conn.Get(ctx, phone+"_smsCode").Result()
+	utils.NewLog().Info("check err:", err)
+	if err != nil {
+		utils.NewLog().Error("CheckSMSCode error:", err)
+		return errors.New("CheckSMSCode error")
+	}
+	if result != smsCode {
+		utils.NewLog().Error("CheckSMSCode not equal:", err)
+		return errors.New("CheckSMSCode not equal error")
+	}
+
+	return nil
 }
