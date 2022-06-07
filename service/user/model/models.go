@@ -89,7 +89,6 @@ func InitDb() {
 		conf.MysqlUser, conf.MysqlPasswd, conf.MysqlIp, conf.MysqlPort)
 	utils.NewLog().Info(str)
 	db, err := gorm.Open("mysql", str)
-	defer db.Close()
 	if err != nil {
 		utils.NewLog().Error("mysql connect error...", err)
 	}

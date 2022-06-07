@@ -16,6 +16,7 @@ const (
 	RECODE_USERERR    = "4107"
 	RECODE_SMSERR     = "4108"
 	RECODE_MOBILEERR  = "4109"
+	RECODE_SMSEQERR   = "4110"
 
 	RECODE_REQERR    = "4201"
 	RECODE_IPERR     = "4202"
@@ -46,6 +47,7 @@ var recodeText = map[string]string{
 	RECODE_UNKNOWERR:  "未知错误",
 	RECODE_SMSERR:     "短信失败",
 	RECODE_MOBILEERR:  "手机号错误",
+	RECODE_SMSEQERR:   "短信与图像验证码不相等",
 }
 
 func RecodeText(code string) string {
@@ -54,4 +56,9 @@ func RecodeText(code string) string {
 		return str
 	}
 	return recodeText[RECODE_UNKNOWERR]
+}
+
+func Resp(resp map[string]string, code string) {
+	resp["errno"] = code
+	resp["errmsg"] = RecodeText(code)
 }

@@ -14,25 +14,20 @@ type UserServiceImpl struct{}
 // SendSMS implements the UserServiceImpl interface.
 func (s *UserServiceImpl) SendSMS(ctx context.Context, req *kitex_gen.SMSRequest) (resp *kitex_gen.Response, err error) {
 	utils.NewLog().Info("SendSMS...", req.Phone, req.ImgCode, req.Uuid)
-	errs := model.SendSMSCode(req.Phone, req.ImgCode, req.Uuid)
-	utils.NewLog().Info("SendSMS...", errs)
-	response := &kitex_gen.Response{}
-	if errs != nil {
-		response.Errno = utils.RECODE_SMSERR
-		response.Errmsg = utils.RecodeText(utils.RECODE_SMSERR)
-		return response, errs
+	response := model.SendSMSCode(req.Phone, req.ImgCode, req.Uuid)
+	utils.NewLog().Info("SendSMS...", response)
+	if utils.RECODE_OK != response.Errno {
+		utils.NewLog().Error("SendSMSCode error:", response)
+		return &response, nil
 	}
 	//保存短信验证码到redis
-	errs = model.SaveSMSCode(req.Phone, conf.PhoneCode)
-	utils.NewLog().Info("SaveSMSCode...", errs)
-	if errs != nil {
-		response.Errno = utils.RECODE_SMSERR
-		response.Errmsg = utils.RecodeText(utils.RECODE_SMSERR)
-		return response, errs
+	response = model.SaveSMSCode(req.Phone, conf.PhoneCode)
+	utils.NewLog().Info("SaveSMSCode...", response)
+	if utils.RECODE_OK != response.Errno {
+		utils.NewLog().Error("SaveSMSCode error:", response)
+		return &response, nil
 	}
-	response.Errno = utils.RECODE_OK
-	response.Errmsg = utils.RecodeText(utils.RECODE_OK)
-	return response, nil
+	return &response, nil
 
 }
 
@@ -40,22 +35,17 @@ func (s *UserServiceImpl) SendSMS(ctx context.Context, req *kitex_gen.SMSRequest
 func (s *UserServiceImpl) Register(ctx context.Context, req *kitex_gen.RegRequest) (resp *kitex_gen.Response, err error) {
 
 	utils.NewLog().Info("Register...", req.Phone+":"+req.Password+":"+req.SmsCode)
-	errs := model.CheckSMSCode(req.Phone, req.SmsCode)
-	response := &kitex_gen.Response{}
-	if errs != nil {
-		utils.NewLog().Error("CheckSMSCode error", errs)
-		response.Errno = utils.RECODE_REQERR
-		response.Errmsg = utils.RecodeText(utils.RECODE_REQERR)
-		return response, errs
+	response := model.CheckSMSCode(req.Phone, req.SmsCode)
+	if utils.RECODE_OK != response.Errno {
+		utils.NewLog().Error("CheckSMSCode error", response)
+		return &response, nil
 	}
-	errs = model.Register(req.Phone, req.Password)
-	if errs != nil {
-		utils.NewLog().Error("Register error", errs)
-		response.Errno = utils.RECODE_REQERR
-		response.Errmsg = utils.RecodeText(utils.RECODE_REQERR)
-		return response, errs
+	response = model.Register(req.Phone, req.Password)
+
+	if utils.RECODE_OK != response.Errno {
+		utils.NewLog().Error("Register error", response)
+		return &response, nil
 	}
-	response.Errno = utils.RECODE_OK
-	response.Errmsg = utils.RecodeText(utils.RECODE_OK)
-	return response, nil
+	response = utils.UserResponse(utils.RECODE_OK)
+	return &response, nil
 }

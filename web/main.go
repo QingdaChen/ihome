@@ -26,6 +26,7 @@ func main() {
 		v1.GET("/session", controller.GetSession)
 		v1.GET("/imagecode/:uuid", controller.GetImageCd)
 		v1.GET("/smscode/:phone", controller.GetSMSCd)
+		v1.POST("/users", controller.Register)
 	}
 	//初始化redis
 	model.InitDb()

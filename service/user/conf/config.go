@@ -10,5 +10,5 @@ const (
 const (
 	RedisIp          = "192.168.31.219"
 	RedisPort        = 6379
-	PhoneCodeTimeOut = 3
+	PhoneCodeTimeOut = 1
 )

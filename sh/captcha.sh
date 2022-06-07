@@ -1,2 +1,2 @@
-cd /home/goproject/ihome/service/captcha
+cd ../service/captcha
 go run main.go handler.go

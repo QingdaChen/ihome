@@ -5,6 +5,7 @@ import (
 	"errors"
 	redis2 "github.com/go-redis/redis/v8"
 	"ihome/service/user/conf"
+	"ihome/service/user/kitex_gen"
 	"ihome/service/user/utils"
 	"strconv"
 	"time"
@@ -67,51 +68,59 @@ func InitRedis() {
 //
 //}
 
-func SendSMSCode(phone, imgCode, uuid string) error {
+func SendSMSCode(phone, imgCode, uuid string) kitex_gen.Response {
 	utils.NewLog().Info(phone + ":" + imgCode + ":" + uuid)
 	conn := Client.Conn(ctx)
+	//判断60s内是否已经发过短信
+	result := ""
+	err := errors.New("")
+	result, err = conn.Get(ctx, phone+"_smsCode").Result()
+	if result != "" {
+		utils.NewLog().Error("SMSCode exists error:", err)
+		return utils.UserResponse(utils.RECODE_SMSERR)
+	}
 
 	//Client.Conn()
-	result, err := conn.Get(ctx, uuid).Result()
+	result, err = conn.Get(ctx, uuid).Result()
 	defer conn.Close()
 	if err != nil {
 		utils.NewLog().Error("SendSMSCode error", err)
-		return errors.New("SendSMSCode error")
+		return utils.UserResponse(utils.RECODE_SMSERR)
 	}
 	if result != imgCode {
-		utils.NewLog().Error("SendSMSCode not equal error", err)
-		return errors.New("SendSMSCode not equal")
+		utils.NewLog().Error("SendSMSCode not equal error", result, imgCode)
+		return utils.UserResponse(utils.RECODE_SMSEQERR)
 	}
 
-	return nil
+	return utils.UserResponse(utils.RECODE_OK)
 }
 
-func SaveSMSCode(phone, code string) error {
+func SaveSMSCode(phone, code string) kitex_gen.Response {
 	conn := Client.Conn(ctx)
 	defer conn.Close()
 	_, err := conn.SetEX(ctx, phone+"_smsCode", code, conf.PhoneCodeTimeOut*time.Minute).Result()
 	utils.NewLog().Info("save err:", err)
 	if err != nil {
 		utils.NewLog().Error("SaveSMSCode error:", err)
-		return errors.New("SaveSMSCd error")
+		return utils.UserResponse(utils.RECODE_SERVERERR)
 	}
-	return nil
+	return utils.UserResponse(utils.RECODE_OK)
 
 }
 
-func CheckSMSCode(phone, smsCode string) error {
+func CheckSMSCode(phone, smsCode string) kitex_gen.Response {
 	conn := Client.Conn(ctx)
 	defer conn.Close()
 	result, err := conn.Get(ctx, phone+"_smsCode").Result()
 	utils.NewLog().Info("check err:", err)
 	if err != nil {
 		utils.NewLog().Error("CheckSMSCode error:", err)
-		return errors.New("CheckSMSCode error")
+		return utils.UserResponse(utils.RECODE_SERVERERR)
 	}
 	if result != smsCode {
 		utils.NewLog().Error("CheckSMSCode not equal:", err)
-		return errors.New("CheckSMSCode not equal error")
+		return utils.UserResponse(utils.RECODE_SMSEQERR)
 	}
 
-	return nil
+	return utils.UserResponse(utils.RECODE_OK)
 }

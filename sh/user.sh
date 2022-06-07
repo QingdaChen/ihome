@@ -1,2 +1,2 @@
-cd /home/goproject/ihome/service/user
+cd ../service/user
 go run main.go handler.go
