@@ -22,4 +22,5 @@ func main() {
 	if err != nil {
 		utils.NewLog().Error("service start error", err)
 	}
+
 }

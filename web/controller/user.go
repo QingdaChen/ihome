@@ -35,16 +35,30 @@ func GetImageCd(ctx *gin.Context) {
 
 // GetSMSCd http://xx.com/api/v1.0/smscode/111?text=248484&id=9cd8faa9-5653-4f7c-b653-0a58a8a98c81
 func GetSMSCd(ctx *gin.Context) {
-	//TODO 接口防刷
+
 	phone := ctx.Param("phone")
 	imgCode := ctx.Query("text")
 	uuid := ctx.Query("id")
+	//TODO 接口防刷
+	ip, _ := ctx.RemoteIP()
+	utils.NewLog().Info("remote ip:", ip)
+	resp := map[string]string{}
+	resIp, _ := utils.InterfaceCache.Get(string(ip))
+	resPhone, _ := utils.InterfaceCache.Get(phone)
+	if (resIp != nil) || (resPhone != nil) {
+		utils.Resp(resp, utils.RECODE_REQFRE)
+		ctx.JSON(http.StatusOK, resp)
+		return
+	}
+	utils.InterfaceCache.Set(string(resIp), []byte(""))
+	utils.InterfaceCache.Set(string(resPhone), []byte(""))
+	utils.NewLog().Info("cache:", utils.InterfaceCache)
 
 	client, err := userservice.NewClient("userService",
 		client.WithHostPorts(conf.UserServerIp+":"+strconv.Itoa(conf.UserServerPort)),
 	)
 	utils.NewLog().Info("GetSMSCd..." + phone + ":" + imgCode + ":" + uuid)
-	resp := map[string]string{}
+
 	//连接错误
 	if err != nil {
 		utils.Resp(resp, utils.RECODE_SERVERERR)
