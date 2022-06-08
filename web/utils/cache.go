@@ -5,18 +5,19 @@ import (
 	"time"
 )
 
-var InterfaceCache *bigcache.BigCache
+var SMSCache *bigcache.BigCache
+var AreasCache *bigcache.BigCache
 
 func InitCache() {
 	config := bigcache.Config{
 		// number of shards (must be a power of 2)
 		Shards: 1024,
 		// time after which entry can be evicted
-		LifeWindow: 30 * time.Second,
+		LifeWindow: 20 * time.Second,
 		// Interval between removing expired en tries (clean up).
 		// If set to <= 0 then no action is performed.
 		// Setting to < 1 second is counterproductive — bigcache has a one second resolution.
-		CleanWindow: 1 * time.Minute,
+		CleanWindow: 20 * time.Second,
 		// rps * lifeWindow, used only in initial memory allocation
 		MaxEntriesInWindow: 1000 * 10 * 60,
 		// max entry size in bytes, used only in initial memory allocation
@@ -37,11 +38,27 @@ func InitCache() {
 		// Ignored if OnRemove is specified.
 		OnRemoveWithReason: nil,
 	}
-
 	cache, initErr := bigcache.NewBigCache(config)
 	if initErr != nil {
 		NewLog().Fatal("Cache init error", initErr)
 	}
-	InterfaceCache = cache
+	SMSCache = cache
+	//初始化区域缓存
+	config = bigcache.Config{
+		Shards:             1024,
+		LifeWindow:         65535 * time.Hour, //永远不过期
+		CleanWindow:        0,
+		MaxEntriesInWindow: 1000 * 10 * 60,
+		MaxEntrySize:       500,
+		Verbose:            true,
+		HardMaxCacheSize:   8192,
+		OnRemove:           nil,
+		OnRemoveWithReason: nil,
+	}
+	cache, initErr = bigcache.NewBigCache(config)
+	if initErr != nil {
+		NewLog().Fatal("Cache init error", initErr)
+	}
+	AreasCache = cache
 
 }

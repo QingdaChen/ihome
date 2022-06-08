@@ -1,5 +1,10 @@
 package conf
 
+//web
+const (
+	WebPort int = 8088
+)
+
 // captcha服务
 const (
 	CaptchaServerIp   string = "192.168.31.219"
@@ -18,6 +23,13 @@ const (
 	MysqlPasswd string = "220108"
 	MysqlIp     string = "192.168.31.219"
 	MysqlPort   int    = 3306
+)
+
+//house
+const (
+	HouseServerIp        string = "192.168.31.219"
+	HouseServerPort      int    = 9002
+	HouseAreasCacheIndex string = "areasData"
 )
 
 var AccessId string = "LTAI5tCuiKcEcUEoJkoXZxQX"

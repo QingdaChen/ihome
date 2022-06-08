@@ -60,7 +60,7 @@ func RecodeText(code string) string {
 	return recodeText[RECODE_UNKNOWERR]
 }
 
-func Resp(resp map[string]string, code string) {
+func Resp(resp map[string]interface{}, code string) {
 	resp["errno"] = code
 	resp["errmsg"] = RecodeText(code)
 }

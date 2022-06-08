@@ -6,7 +6,7 @@ import (
 	"github.com/afocus/captcha"
 	"ihome/service/captcha/kitex_gen"
 	"ihome/service/captcha/model"
-	"ihome/service/captcha/utils"
+	"ihome/service/utils"
 	"image/color"
 )
 

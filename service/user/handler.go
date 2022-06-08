@@ -5,7 +5,7 @@ import (
 	"ihome/service/captcha/conf"
 	"ihome/service/user/kitex_gen"
 	"ihome/service/user/model"
-	"ihome/service/user/utils"
+	"ihome/service/utils"
 )
 
 // UserServiceImpl implements the last service interface defined in the IDL.

@@ -2,7 +2,7 @@ package model
 
 import (
 	"ihome/service/user/kitex_gen"
-	"ihome/service/user/utils"
+	"ihome/service/utils"
 )
 
 func Register(phone, password string) kitex_gen.Response {

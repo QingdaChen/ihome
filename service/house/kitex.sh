@@ -1,0 +1,1 @@
+kitex -module ihome -type protobuf -service house -I ./ house.proto

@@ -2,12 +2,11 @@ package model
 
 import (
 	"context"
-	"errors"
 	redis2 "github.com/go-redis/redis/v8"
-	"ihome/service/captcha/conf"
+	"ihome/service/house/conf"
+	"ihome/service/house/kitex_gen"
 	"ihome/service/utils"
 	"strconv"
-	"time"
 )
 
 var Client *redis2.Client
@@ -22,6 +21,7 @@ func InitRedis() {
 		PoolSize:    50,
 		PoolTimeout: 5000, //池连接超时时间
 	})
+
 }
 
 //func InitPool() {
@@ -66,14 +66,28 @@ func InitRedis() {
 //
 //}
 
-func SaveImgCode(uuid, code string) error {
+//GetRedisAreas 获取redis中的areas
+func GetRedisAreas() kitex_gen.Response {
+	utils.NewLog().Info("GetRedisAreas start...")
 	conn := Client.Conn(ctx)
-	defer conn.Close()
-	_, err := conn.SetEX(ctx, uuid, code, conf.RedisTimeOut*time.Minute).Result()
-	if err != nil {
-		utils.NewLog().Error("SaveImgCode error", err)
-		return errors.New("SaveImgCode error")
-	}
+	result := ""
+	result, _ = conn.Get(ctx, conf.RedisAreasIndex).Result()
+	utils.NewLog().Info("GetRedisAreas result...", result)
+	response := utils.HouseResponse(utils.RECODE_OK, []byte(result))
+	return response
 
-	return nil
+}
+
+//SaveRedisAreas 保存area到redis中
+func SaveRedisAreas(areas []byte) kitex_gen.Response {
+	utils.NewLog().Info("SaveRedisAreas start...")
+	conn := Client.Conn(ctx)
+	//redis保存areas
+	_, err := conn.Set(ctx, conf.RedisAreasIndex, areas, conf.RedisAreasTimeOut).Result()
+	if err != nil {
+		utils.NewLog().Error("conn.Set error...", err)
+		return utils.HouseResponse(utils.RECODE_SERVERERR, []byte(""))
+	}
+	return utils.HouseResponse(utils.RECODE_OK, []byte(""))
+
 }

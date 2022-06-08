@@ -1,0 +1,18 @@
+syntax = "proto3";
+package house;
+option go_package = "./";
+
+message AreaRequest{
+
+}
+
+message Response{
+  //返回错误码、信息和数据
+  string errno = 1;
+  string errmsg = 2;
+  bytes data = 3;
+}
+
+service HouseService{
+  rpc GetArea(AreaRequest) returns (Response) {}
+}

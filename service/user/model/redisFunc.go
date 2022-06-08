@@ -6,7 +6,7 @@ import (
 	redis2 "github.com/go-redis/redis/v8"
 	"ihome/service/user/conf"
 	"ihome/service/user/kitex_gen"
-	"ihome/service/user/utils"
+	"ihome/service/utils"
 	"strconv"
 	"time"
 )

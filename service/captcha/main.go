@@ -5,7 +5,7 @@ import (
 	"ihome/service/captcha/conf"
 	kitex_gen "ihome/service/captcha/kitex_gen/captchaservice"
 	"ihome/service/captcha/model"
-	"ihome/service/captcha/utils"
+	"ihome/service/utils"
 	"net"
 )
 

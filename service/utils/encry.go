@@ -2,13 +2,12 @@ package utils
 
 import (
 	"golang.org/x/crypto/bcrypt"
-	"ihome/service/captcha/utils"
 )
 
 func Encryption(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		utils.NewLog().Error("Encryption error")
+		NewLog().Error("Encryption error")
 	}
 	return string(hash)
 }
