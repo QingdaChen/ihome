@@ -1,5 +1,7 @@
 package utils
 
+import "ihome/web/conf"
+
 const (
 	RECODE_OK        = "0"
 	RECODE_DBERR     = "4001"
@@ -61,6 +63,6 @@ func RecodeText(code string) string {
 }
 
 func Resp(resp map[string]interface{}, code string) {
-	resp["errno"] = code
-	resp["errmsg"] = RecodeText(code)
+	resp[conf.ErrorNoIndex] = code
+	resp[conf.ErrorMsgIndex] = RecodeText(code)
 }

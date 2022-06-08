@@ -1,22 +1,5 @@
 package conf
 
-//web
-const (
-	WebPort int = 8088
-)
-
-// captcha服务
-const (
-	CaptchaServerIp   string = "192.168.31.219"
-	CaptchaServerPort int    = 9000
-)
-
-//user
-const (
-	UserServerIp   string = "192.168.31.219"
-	UserServerPort int    = 9001
-)
-
 //mysql
 const (
 	MysqlUser   string = "root"
@@ -25,11 +8,38 @@ const (
 	MysqlPort   int    = 3306
 )
 
-//house
+//web
+const (
+	WebPort int = 8088
+)
+
+// captcha服务
+const (
+	CaptchaServerIp     string = "192.168.31.219"
+	CaptchaServerPort   int    = 9000
+	CaptchaServiceIndex string = "captchaService"
+)
+
+//user服务
+const (
+	UserServerIp     string = "192.168.31.219"
+	UserServerPort   int    = 9001
+	UserServiceIndex string = "userService"
+)
+
+//house 服务
 const (
 	HouseServerIp        string = "192.168.31.219"
 	HouseServerPort      int    = 9002
 	HouseAreasCacheIndex string = "areasData"
+	HouseServiceIndex    string = "houseService"
+)
+
+//web json返回
+const (
+	ErrorNoIndex  string = "errno"
+	ErrorMsgIndex string = "errmsg"
+	DataIndex     string = "data"
 )
 
 var AccessId string = "LTAI5tCuiKcEcUEoJkoXZxQX"

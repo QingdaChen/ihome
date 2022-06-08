@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/afocus/captcha"
-	"github.com/cloudwego/kitex/client"
 	"github.com/gin-gonic/gin"
 	captcha_kitex_gen "ihome/service/captcha/kitex_gen"
 	"ihome/service/captcha/kitex_gen/captchaservice"
@@ -29,9 +28,33 @@ func GetSession(ctx *gin.Context) {
 
 }
 
+//GetImageCd 获取验证码
 func GetImageCd(ctx *gin.Context) {
 
-	initCaptcha(ctx)
+	uuid := ctx.Param("uuid")
+	result, resp := utils.GetService(conf.CaptchaServiceIndex)
+	if utils.RECODE_OK != resp[conf.ErrorNoIndex].(string) {
+		ctx.JSON(http.StatusOK, resp)
+		return
+	}
+	service := result.(captchaservice.Client)
+	utils.NewLog().Info("", conf.CaptchaServerIp+":"+strconv.Itoa(conf.CaptchaServerPort))
+	utils.NewLog().Info("client ...", service)
+
+	req := &captcha_kitex_gen.Request{Uuid: uuid}
+	response, err2 := service.GetCaptcha(context.Background(), req)
+	if err2 != nil {
+		utils.NewLog().Info("GetCaptcha error ...", err2)
+	}
+	var img captcha.Image
+	err2 = json.Unmarshal(response.Img, &img)
+	if err2 != nil {
+		utils.NewLog().Error("json.Unmarshal error:", err2)
+		utils.Resp(resp, utils.RECODE_SERVERERR)
+		ctx.JSON(http.StatusOK, resp)
+	}
+	png.Encode(ctx.Writer, img)
+	utils.NewLog().Info("uuid:", uuid)
 
 }
 
@@ -60,20 +83,19 @@ func GetSMSCd(ctx *gin.Context) {
 	utils.SMSCache.Set(phone, []byte("1"))
 	//utils.NewLog().Info("cache:", utils.InterfaceCache)
 
-	client, err := userservice.NewClient("userService",
-		client.WithHostPorts(conf.UserServerIp+":"+strconv.Itoa(conf.UserServerPort)),
-	)
-	utils.NewLog().Info("GetSMSCd..." + phone + ":" + imgCode + ":" + uuid)
-
-	//连接错误
-	if err != nil {
-		utils.Resp(resp, utils.RECODE_SERVERERR)
+	//连接服务
+	result, resp := utils.GetService(conf.UserServiceIndex)
+	if utils.RECODE_OK != resp[conf.ErrorNoIndex].(string) {
 		ctx.JSON(http.StatusOK, resp)
 		return
 	}
+	service := result.(userservice.Client)
+
+	utils.NewLog().Info("GetSMSCd..." + phone + ":" + imgCode + ":" + uuid)
+
 	//发送短信
 	req := &user_kitex_gen.SMSRequest{Phone: phone, ImgCode: imgCode, Uuid: uuid}
-	response, _ := client.SendSMS(context.Background(), req)
+	response, err := service.SendSMS(context.Background(), req)
 	utils.NewLog().Info("SendSMS...", err)
 	utils.Resp(resp, response.Errno)
 	ctx.JSON(http.StatusOK, resp)
@@ -91,17 +113,13 @@ func Register(ctx *gin.Context) {
 		utils.NewLog().Error("Register bind error:", err)
 		return
 	}
-	var service userservice.Client
-	service, err = userservice.NewClient("userService",
-		client.WithHostPorts(conf.UserServerIp+":"+strconv.Itoa(conf.UserServerPort)),
-	)
-	resp := make(map[string]interface{})
-	//连接错误
-	if err != nil {
-		utils.Resp(resp, utils.RECODE_SERVERERR)
+	//连接服务
+	result, resp := utils.GetService(conf.UserServiceIndex)
+	if utils.RECODE_OK != resp[conf.ErrorNoIndex].(string) {
 		ctx.JSON(http.StatusOK, resp)
 		return
 	}
+	service := result.(userservice.Client)
 	req := &user_kitex_gen.RegRequest{Phone: register.Phone,
 		Password: register.Password, SmsCode: register.SmsCode}
 	response, _ := service.Register(ctx, req)
@@ -116,7 +134,7 @@ func Register(ctx *gin.Context) {
 func GetAreas(ctx *gin.Context) {
 	//先走本地缓存
 	resp := make(map[string]interface{})
-	resp["data"] = ""
+	resp[conf.DataIndex] = ""
 	//缓存中查
 	cacheAreas, _ := utils.AreasCache.Get(conf.HouseAreasCacheIndex)
 	var areas []model.Area
@@ -132,21 +150,18 @@ func GetAreas(ctx *gin.Context) {
 		}
 		utils.NewLog().Info("cache areas:", areas)
 		//直接返回
-		resp["data"] = areas
+		resp[conf.DataIndex] = areas
 		ctx.JSON(http.StatusOK, resp)
 		return
 	}
 	//查不到远程请求house服务查询
-	service, err := houseservice.NewClient("houseservice",
-		client.WithHostPorts(conf.HouseServerIp+":"+strconv.Itoa(conf.HouseServerPort)),
-	)
-	//连接错误
-	if err != nil {
-		utils.NewLog().Info("houseservice connect error", err)
-		utils.Resp(resp, utils.RECODE_SERVERERR)
+	var result interface{}
+	result, resp = utils.GetService(conf.HouseServiceIndex)
+	if utils.RECODE_OK != resp[conf.ErrorNoIndex].(string) {
 		ctx.JSON(http.StatusOK, resp)
 		return
 	}
+	service := result.(houseservice.Client)
 	req := &house_kitex_gen.AreaRequest{}
 	response, _ := service.GetArea(ctx, req)
 	utils.Resp(resp, response.Errno)
@@ -156,7 +171,7 @@ func GetAreas(ctx *gin.Context) {
 		return
 	}
 	//反序列化
-	err = json.Unmarshal(response.Data, &areas)
+	err := json.Unmarshal(response.Data, &areas)
 	if err != nil {
 		utils.NewLog().Info("json.Unmarshal(response.Data, &areas) error", err)
 		utils.Resp(resp, utils.RECODE_SERVERERR)
@@ -170,28 +185,4 @@ func GetAreas(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 	return
 
-}
-
-//获取验证码
-func initCaptcha(ctx *gin.Context) {
-
-	uuid := ctx.Param("uuid")
-	client, err := captchaservice.NewClient("captchaService",
-		client.WithHostPorts(conf.CaptchaServerIp+":"+strconv.Itoa(conf.CaptchaServerPort)),
-		//client.WithResolver(dns.NewDNSResolver()),
-	)
-	utils.NewLog().Info("", conf.CaptchaServerIp+":"+strconv.Itoa(conf.CaptchaServerPort))
-	utils.NewLog().Info("client ...", client)
-	if err != nil {
-		utils.NewLog().Info("captchaService error...", err)
-	}
-	req := &captcha_kitex_gen.Request{Uuid: uuid}
-	resp, err2 := client.GetCaptcha(context.Background(), req)
-	if err2 != nil {
-		utils.NewLog().Info("GetCaptcha error ...", err2)
-	}
-	var img captcha.Image
-	json.Unmarshal(resp.Img, &img)
-	png.Encode(ctx.Writer, img)
-	utils.NewLog().Info("uuid:", uuid)
 }
