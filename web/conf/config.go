@@ -8,7 +8,7 @@ const (
 	MysqlPort   int    = 3306
 )
 
-//web
+// web
 const (
 	WebPort int = 8088
 )
@@ -33,6 +33,23 @@ const (
 	HouseServerPort      int    = 9002
 	HouseAreasCacheIndex string = "areasData"
 	HouseServiceIndex    string = "houseService"
+)
+
+//session
+const (
+	SessionRedisIP    string = "192.168.31.219"
+	SessionRedisPort  int    = 6379
+	SessionSize       int    = 10
+	SessionNetwork    string = "tcp"
+	SessionPasswd     string = ""
+	SessionSecret     string = "2332456"
+	SessionLoginIndex string = "session_login"
+)
+
+//cookie
+const (
+	LoginCookieName    string = "sessionId" //登录cookie name
+	LoginCookieTimeOut int    = 3600 * 24 * 7
 )
 
 //web json返回

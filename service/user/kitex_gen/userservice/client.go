@@ -13,6 +13,7 @@ import (
 type Client interface {
 	SendSMS(ctx context.Context, Req *kitex_gen.SMSRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 	Register(ctx context.Context, Req *kitex_gen.RegRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
+	Login(ctx context.Context, Req *kitex_gen.LoginRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -52,4 +53,9 @@ func (p *kUserServiceClient) SendSMS(ctx context.Context, Req *kitex_gen.SMSRequ
 func (p *kUserServiceClient) Register(ctx context.Context, Req *kitex_gen.RegRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.Register(ctx, Req)
+}
+
+func (p *kUserServiceClient) Login(ctx context.Context, Req *kitex_gen.LoginRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.Login(ctx, Req)
 }

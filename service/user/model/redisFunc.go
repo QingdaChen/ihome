@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	redis2 "github.com/go-redis/redis/v8"
 	"ihome/service/user/conf"
@@ -68,6 +69,9 @@ func InitRedis() {
 //
 //}
 
+/*
+  短信函数
+*/
 func SendSMSCode(phone, imgCode, uuid string) kitex_gen.Response {
 	utils.NewLog().Info(phone + ":" + imgCode + ":" + uuid)
 	conn := Client.Conn(ctx)
@@ -77,7 +81,7 @@ func SendSMSCode(phone, imgCode, uuid string) kitex_gen.Response {
 	result, err = conn.Get(ctx, phone+"_smsCode").Result()
 	if result != "" {
 		utils.NewLog().Error("SMSCode exists error:", err)
-		return utils.UserResponse(utils.RECODE_SMSERR)
+		return utils.UserResponse(utils.RECODE_SMSERR, nil)
 	}
 
 	//Client.Conn()
@@ -85,14 +89,14 @@ func SendSMSCode(phone, imgCode, uuid string) kitex_gen.Response {
 	defer conn.Close()
 	if err != nil {
 		utils.NewLog().Error("SendSMSCode error", err)
-		return utils.UserResponse(utils.RECODE_SMSERR)
+		return utils.UserResponse(utils.RECODE_SMSERR, nil)
 	}
 	if result != imgCode {
 		utils.NewLog().Error("SendSMSCode not equal error", result, imgCode)
-		return utils.UserResponse(utils.RECODE_SMSEQERR)
+		return utils.UserResponse(utils.RECODE_SMSEQERR, nil)
 	}
 
-	return utils.UserResponse(utils.RECODE_OK)
+	return utils.UserResponse(utils.RECODE_OK, nil)
 }
 
 func SaveSMSCode(phone, code string) kitex_gen.Response {
@@ -102,9 +106,9 @@ func SaveSMSCode(phone, code string) kitex_gen.Response {
 	utils.NewLog().Info("save err:", err)
 	if err != nil {
 		utils.NewLog().Error("SaveSMSCode error:", err)
-		return utils.UserResponse(utils.RECODE_SERVERERR)
+		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
 	}
-	return utils.UserResponse(utils.RECODE_OK)
+	return utils.UserResponse(utils.RECODE_OK, nil)
 
 }
 
@@ -115,12 +119,38 @@ func CheckSMSCode(phone, smsCode string) kitex_gen.Response {
 	utils.NewLog().Info("check err:", err)
 	if err != nil {
 		utils.NewLog().Error("CheckSMSCode error:", err)
-		return utils.UserResponse(utils.RECODE_SERVERERR)
+		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
 	}
 	if result != smsCode {
 		utils.NewLog().Error("CheckSMSCode not equal:", err)
-		return utils.UserResponse(utils.RECODE_SMSEQERR)
+		return utils.UserResponse(utils.RECODE_SMSEQERR, nil)
 	}
 
-	return utils.UserResponse(utils.RECODE_OK)
+	return utils.UserResponse(utils.RECODE_OK, nil)
+}
+
+/*
+   保存session
+*/
+func SaveRedisSession(data []byte) kitex_gen.Response {
+	conn := Client.Conn(ctx)
+	defer conn.Close()
+	user := User{}
+	err := json.Unmarshal(data, &user)
+	if err != nil {
+		utils.NewLog().Error("json.Unmarshal error:", err)
+		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
+	}
+	//将用户Id加密
+	idHash := utils.Encryption(strconv.Itoa(user.ID))
+	_, err = conn.SetEX(ctx, conf.SessionLoginIndex+"_"+idHash, data,
+		conf.SessionLoginTimeOut*time.Hour).Result()
+	utils.NewLog().Info("save err:", err)
+	if err != nil {
+		utils.NewLog().Info("conn.SetEX error:", err)
+		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
+	}
+
+	return utils.UserResponse(utils.RECODE_OK, []byte(idHash))
+
 }

@@ -63,8 +63,8 @@ func RecodeText(code string) string {
 	return recodeText[RECODE_UNKNOWERR]
 }
 
-func UserResponse(errCode string) user_kitex_gen.Response {
-	return user_kitex_gen.Response{Errno: errCode, Errmsg: RecodeText(errCode)}
+func UserResponse(errCode string, data []byte) user_kitex_gen.Response {
+	return user_kitex_gen.Response{Errno: errCode, Errmsg: RecodeText(errCode), Data: data}
 }
 
 func HouseResponse(errCode string, data []byte) house_kitex_gen.Response {

@@ -66,3 +66,12 @@ func Resp(resp map[string]interface{}, code string) {
 	resp[conf.ErrorNoIndex] = code
 	resp[conf.ErrorMsgIndex] = RecodeText(code)
 }
+
+func Response(code string, data interface{}) map[string]interface{} {
+	resp := make(map[string]interface{}, 3)
+	resp[conf.ErrorNoIndex] = code
+	resp[conf.ErrorMsgIndex] = RecodeText(code)
+	resp[conf.DataIndex] = data
+	return resp
+
+}

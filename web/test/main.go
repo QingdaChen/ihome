@@ -24,12 +24,22 @@ func testCache() {
 	entry, _ := utils.SMSCache.Get("1")
 	utils.NewLog().Info(string(entry))
 }
+
+//测试gin session
+func testSession() {
+	//r := gin.Default()
+	//store, _ := redis.NewStore(10, "tcp",
+	//	conf.SessionRedisIP+":"+strconv.Itoa(conf.SessionRedisPort), "", []byte("secret"))
+	//r.Use(sessions.Sessions("mysession", store))
+
+}
+
 func main() {
 
 	//TestRedis2()
 	//test()
 	//TestMysql()
 	//testEncryption()
-	testCache()
+	//testCache()
 
 }

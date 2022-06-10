@@ -46,6 +46,26 @@ func (s *UserServiceImpl) Register(ctx context.Context, req *kitex_gen.RegReques
 		utils.NewLog().Error("Register error", response)
 		return &response, nil
 	}
-	response = utils.UserResponse(utils.RECODE_OK)
+	response = utils.UserResponse(utils.RECODE_OK, nil)
 	return &response, nil
+}
+
+// Login implements the UserServiceImpl interface.
+func (s *UserServiceImpl) Login(ctx context.Context, req *kitex_gen.LoginRequest) (resp *kitex_gen.Response, err error) {
+	utils.NewLog().Info("login :", req.Phone, req.Password)
+	//检查数据库
+	loginResp := model.Login(req.Phone, req.Password)
+	utils.NewLog().Info("login info:", loginResp)
+	if utils.RECODE_OK != loginResp.Errno {
+		utils.NewLog().Info("mysql login error:", loginResp)
+		return &loginResp, nil
+	}
+	//保存session
+	sessionResp := model.SaveRedisSession(loginResp.Data)
+	if utils.RECODE_OK != sessionResp.Errno {
+		utils.NewLog().Info("SaveRedisSession error:", sessionResp)
+	}
+	utils.NewLog().Info("sessionResp:", string(sessionResp.Data))
+	return &sessionResp, nil
+
 }
