@@ -24,12 +24,14 @@ func InitRouters() *gin.Engine {
 	v1 := router.Group("/api/v1.0")
 	{
 
-		v1.POST("/sessions", controller.PostLogin) //登录
 		v1.GET("/imagecode/:uuid", controller.GetImageCd)
 		v1.GET("/smscode/:phone", controller.GetSMSCd)
 		v1.POST("/users", controller.Register)
-		v1.GET("/areas", controller.GetAreas)     //获取房子地域信息
-		v1.GET("/session", controller.GetSession) //获取用户信息
+		v1.GET("/areas", controller.GetAreas) //获取房子地域信息
+
+		v1.POST("/sessions", controller.PostLogin) //登录
+		v1.GET("/session", controller.GetSession)  //获取用户信息
+		v1.DELETE("/session", controller.DeleteSession)
 
 		//下面的方法都得sessionAuth
 		v1.Use(controller.SessionAuth(router))

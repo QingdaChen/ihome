@@ -64,7 +64,7 @@ func handlerUserService(ctx *gin.Context, result interface{}, req interface{}) (
 	utils.NewLog().Info("userService.Client", service)
 	var response interface{}
 	var err error
-	utils.NewLog().Infof("req type:%v", req)
+	utils.NewLog().Info("req type", req)
 	switch req.(type) {
 	case user_kitex_gen.SMSRequest:
 		request := req.(user_kitex_gen.SMSRequest)
@@ -76,10 +76,20 @@ func handlerUserService(ctx *gin.Context, result interface{}, req interface{}) (
 		request := req.(user_kitex_gen.LoginRequest)
 		response, err = service.Login(ctx, &request)
 	case user_kitex_gen.SessionAuthRequest:
-		utils.NewLog().Info("user_kitex_gen.SessionAuthRequest")
+		utils.NewLog().Info("SessionAuthRequest")
 		request := req.(user_kitex_gen.SessionAuthRequest)
 		response, err = service.SessionAuth(ctx, &request)
-		utils.NewLog().Info("user_kitex_gen.SessionAuthRequest:", response)
+		utils.NewLog().Info("SessionAuthRequest:", response)
+	case user_kitex_gen.SessionRequest:
+		utils.NewLog().Info("SessionRequest")
+		request := req.(user_kitex_gen.SessionRequest)
+		response, err = service.GetSessionInfo(ctx, &request)
+		utils.NewLog().Info("SessionRequest:", response)
+	case user_kitex_gen.SessionDeleteRequest:
+		utils.NewLog().Info("SessionDeleteRequest")
+		request := req.(user_kitex_gen.SessionDeleteRequest)
+		response, err = service.DeleteSession(ctx, &request)
+		utils.NewLog().Info("SessionDeleteRequest:", response)
 	default:
 		utils.NewLog().Info("handlerUserService default")
 		err = errors.New("handlerUserService error")

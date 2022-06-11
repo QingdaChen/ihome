@@ -27,6 +27,9 @@ message SessionRequest{
   string sessionId = 1; //phone
 }
 
+message SessionDeleteRequest{
+  string sessionId = 1; //phone
+}
 
 message Response{
   //返回错误码和信息
@@ -43,5 +46,6 @@ service UserService{
   rpc Login(LoginRequest) returns (Response) {}
   rpc SessionAuth(SessionAuthRequest) returns (Response) {} //session认证
   rpc GetSessionInfo(SessionRequest) returns (Response) {} //session信息获取
+  rpc DeleteSession(SessionDeleteRequest) returns (Response) {} //session删除
 
 }

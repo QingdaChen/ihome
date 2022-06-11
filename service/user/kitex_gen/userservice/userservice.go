@@ -27,6 +27,7 @@ func NewServiceInfo() *kitex.ServiceInfo {
 		"Login":          kitex.NewMethodInfo(loginHandler, newLoginArgs, newLoginResult, false),
 		"SessionAuth":    kitex.NewMethodInfo(sessionAuthHandler, newSessionAuthArgs, newSessionAuthResult, false),
 		"GetSessionInfo": kitex.NewMethodInfo(getSessionInfoHandler, newGetSessionInfoArgs, newGetSessionInfoResult, false),
+		"DeleteSession":  kitex.NewMethodInfo(deleteSessionHandler, newDeleteSessionArgs, newDeleteSessionResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "user",
@@ -557,6 +558,109 @@ func (p *GetSessionInfoResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
+func deleteSessionHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(kitex_gen.SessionDeleteRequest)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(kitex_gen.UserService).DeleteSession(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := st.SendMsg(resp); err != nil {
+			return err
+		}
+	case *DeleteSessionArgs:
+		success, err := handler.(kitex_gen.UserService).DeleteSession(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*DeleteSessionResult)
+		realResult.Success = success
+	}
+	return nil
+}
+func newDeleteSessionArgs() interface{} {
+	return &DeleteSessionArgs{}
+}
+
+func newDeleteSessionResult() interface{} {
+	return &DeleteSessionResult{}
+}
+
+type DeleteSessionArgs struct {
+	Req *kitex_gen.SessionDeleteRequest
+}
+
+func (p *DeleteSessionArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, fmt.Errorf("No req in DeleteSessionArgs")
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *DeleteSessionArgs) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.SessionDeleteRequest)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var DeleteSessionArgs_Req_DEFAULT *kitex_gen.SessionDeleteRequest
+
+func (p *DeleteSessionArgs) GetReq() *kitex_gen.SessionDeleteRequest {
+	if !p.IsSetReq() {
+		return DeleteSessionArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *DeleteSessionArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+type DeleteSessionResult struct {
+	Success *kitex_gen.Response
+}
+
+var DeleteSessionResult_Success_DEFAULT *kitex_gen.Response
+
+func (p *DeleteSessionResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, fmt.Errorf("No req in DeleteSessionResult")
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *DeleteSessionResult) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.Response)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *DeleteSessionResult) GetSuccess() *kitex_gen.Response {
+	if !p.IsSetSuccess() {
+		return DeleteSessionResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *DeleteSessionResult) SetSuccess(x interface{}) {
+	p.Success = x.(*kitex_gen.Response)
+}
+
+func (p *DeleteSessionResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -612,6 +716,16 @@ func (p *kClient) GetSessionInfo(ctx context.Context, Req *kitex_gen.SessionRequ
 	_args.Req = Req
 	var _result GetSessionInfoResult
 	if err = p.c.Call(ctx, "GetSessionInfo", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) DeleteSession(ctx context.Context, Req *kitex_gen.SessionDeleteRequest) (r *kitex_gen.Response, err error) {
+	var _args DeleteSessionArgs
+	_args.Req = Req
+	var _result DeleteSessionResult
+	if err = p.c.Call(ctx, "DeleteSession", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

@@ -177,3 +177,36 @@ func CheckRedisSession(sessionId string) kitex_gen.Response {
 
 	return utils.UserResponse(utils.RECODE_OK, nil)
 }
+
+//GetSessionInfo 获取session信息
+func GetSessionInfo(sessionId string) kitex_gen.Response {
+	conn := Client.Conn(ctx)
+	defer conn.Close()
+	utils.NewLog().Info("GetSessionInfo:", sessionId)
+	result, err := conn.Get(ctx, conf.SessionLoginIndex+"_"+sessionId).Result()
+	utils.NewLog().Info("GetSessionInfo result:", result)
+	if err != nil {
+		utils.NewLog().Error("conn.Get error:", err)
+		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
+	}
+	if result == "" {
+		utils.NewLog().Error("GetSessionInfo nil:", err)
+		return utils.UserResponse(utils.RECODE_SESSIONERR, nil)
+	}
+	return utils.UserResponse(utils.RECODE_OK, []byte(result))
+}
+
+//DeleteSession 获取session信息
+func DeleteSession(sessionId string) kitex_gen.Response {
+	conn := Client.Conn(ctx)
+	defer conn.Close()
+	utils.NewLog().Info("DeleteSession:", sessionId)
+	_, err := conn.Del(ctx, conf.SessionLoginIndex+"_"+sessionId).Result()
+	//utils.NewLog().Info("GetSessionInfo result:", result)
+	if err != nil {
+		utils.NewLog().Error("conn.Get error:", err)
+		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
+	}
+
+	return utils.UserResponse(utils.RECODE_OK, nil)
+}

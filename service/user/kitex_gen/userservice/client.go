@@ -16,6 +16,7 @@ type Client interface {
 	Login(ctx context.Context, Req *kitex_gen.LoginRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 	SessionAuth(ctx context.Context, Req *kitex_gen.SessionAuthRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 	GetSessionInfo(ctx context.Context, Req *kitex_gen.SessionRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
+	DeleteSession(ctx context.Context, Req *kitex_gen.SessionDeleteRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -70,4 +71,9 @@ func (p *kUserServiceClient) SessionAuth(ctx context.Context, Req *kitex_gen.Ses
 func (p *kUserServiceClient) GetSessionInfo(ctx context.Context, Req *kitex_gen.SessionRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.GetSessionInfo(ctx, Req)
+}
+
+func (p *kUserServiceClient) DeleteSession(ctx context.Context, Req *kitex_gen.SessionDeleteRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.DeleteSession(ctx, Req)
 }

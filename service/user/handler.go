@@ -80,6 +80,20 @@ func (s *UserServiceImpl) SessionAuth(ctx context.Context, req *kitex_gen.Sessio
 
 // GetSessionInfo implements the UserServiceImpl interface.
 func (s *UserServiceImpl) GetSessionInfo(ctx context.Context, req *kitex_gen.SessionRequest) (resp *kitex_gen.Response, err error) {
-	// TODO: Your code here...
-	return
+	utils.NewLog().Info("GetSessionInfo start")
+	//调用redis查询session信息
+	sessionResp := model.GetSessionInfo(req.SessionId)
+	utils.NewLog().Info("GetSessionInfo:", sessionResp)
+
+	return &sessionResp, nil
+
+}
+
+// DeleteSession implements the UserServiceImpl interface.
+func (s *UserServiceImpl) DeleteSession(ctx context.Context, req *kitex_gen.SessionDeleteRequest) (resp *kitex_gen.Response, err error) {
+	utils.NewLog().Info("DeleteSession start")
+	//调用redis删除session
+	deleteResp := model.DeleteSession(req.SessionId)
+	utils.NewLog().Info("GetSessionInfo:", deleteResp)
+	return &deleteResp, nil
 }

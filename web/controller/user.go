@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	user_kitex_gen "ihome/service/user/kitex_gen"
 	"ihome/web/conf"
@@ -12,9 +13,54 @@ import (
 
 func GetSession(ctx *gin.Context) {
 
-	resp := make(map[string]interface{})
-	utils.Resp(resp, utils.RECODE_SESSIONERR)
-	ctx.JSON(http.StatusOK, resp)
+	utils.NewLog().Info("GetSession start...")
+	sessionId, err := ctx.Cookie(conf.LoginCookieName)
+	if err != nil || sessionId == "" {
+		//sessionId 不存在或者过期直接返回
+		utils.NewLog().Info("ctx.Cookie error:", err)
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SESSIONERR, nil))
+		return
+	}
+	req := user_kitex_gen.SessionRequest{SessionId: sessionId}
+	res, err2 := remote.RPC(ctx, conf.UserServiceIndex, req)
+	if err2 != nil {
+		utils.NewLog().Info("remote.RPC error:", err)
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SERVERERR, nil))
+		return
+	}
+	var user model.User
+
+	response := res.(*user_kitex_gen.Response)
+	err = json.Unmarshal(response.Data, &user)
+	if err != nil {
+		utils.NewLog().Error("json.Unmarshal error:", err)
+		ctx.JSON(http.StatusOK, response)
+	}
+	utils.NewLog().Info("response:", user)
+	ctx.JSON(http.StatusOK, utils.Response(response.Errno, user))
+
+}
+
+func DeleteSession(ctx *gin.Context) {
+
+	utils.NewLog().Info("DeleteSession start...")
+	sessionId, err := ctx.Cookie(conf.LoginCookieName)
+	if err != nil || sessionId == "" {
+		//sessionId 不存在或者过期直接返回
+		utils.NewLog().Info("ctx.Cookie error:", err)
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SESSIONERR, nil))
+		return
+	}
+	req := user_kitex_gen.SessionDeleteRequest{SessionId: sessionId}
+	res, err2 := remote.RPC(ctx, conf.UserServiceIndex, req)
+	if err2 != nil {
+		utils.NewLog().Info("remote.RPC error:", err)
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SERVERERR, nil))
+		return
+	}
+	response := res.(*user_kitex_gen.Response)
+	utils.NewLog().Info("response:", response)
+	ctx.JSON(http.StatusOK, utils.Response(response.Errno, nil))
 
 }
 
