@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
+	redis2 "github.com/go-redis/redis/v8"
+	"ihome/web/conf"
 	"ihome/web/utils"
+	"strconv"
 	"time"
 )
 
@@ -11,7 +15,19 @@ import (
 //	utils.NewLog().Info("", utils.CheckPasswd("123456", mysqlPasswd))
 //
 //}
+func testRedis2() {
+	conn := redis2.NewClient(&redis2.Options{
+		Addr:     conf.SessionRedisIP + ":" + strconv.Itoa(conf.SessionRedisPort),
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+	utils.NewLog().Info("conn..", conn)
+	result, err := conn.Exists(context.Background(), "2").Result()
+	utils.NewLog().Info("result..", result)
+	utils.NewLog().Info("err:", err)
+	//conn.SetEX(ctx, uuid, code, conf.RedisTimeOut)
 
+}
 func testCache() {
 	//cache, _ := bigcache.NewBigCache(bigcache.DefaultConfig(10 * time.Minute))
 	//
@@ -41,5 +57,6 @@ func main() {
 	//TestMysql()
 	//testEncryption()
 	//testCache()
+	testRedis2()
 
 }

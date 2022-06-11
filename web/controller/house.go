@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	house_kitex_gen "ihome/service/house/kitex_gen"
-	"ihome/service/house/kitex_gen/houseservice"
 	"ihome/web/conf"
 	"ihome/web/model"
+	"ihome/web/remote"
 	"ihome/web/utils"
 	"net/http"
 )
@@ -36,34 +36,28 @@ func GetAreas(ctx *gin.Context) {
 		return
 	}
 	//查不到远程请求house服务查询
-	var result interface{}
-	result, resp = utils.GetService(conf.HouseServiceIndex)
-	if utils.RECODE_OK != resp[conf.ErrorNoIndex].(string) {
-		ctx.JSON(http.StatusOK, resp)
-		return
-	}
-	service := result.(houseservice.Client)
-	req := &house_kitex_gen.AreaRequest{}
-	response, _ := service.GetArea(ctx, req)
-	utils.Resp(resp, response.Errno)
-	if utils.RECODE_OK != response.Errno {
-		resp["data"] = ""
-		ctx.JSON(http.StatusOK, resp)
-		return
-	}
-	//反序列化
-	err := json.Unmarshal(response.Data, &areas)
+
+	req := house_kitex_gen.AreaRequest{}
+	res, err := remote.RPC(ctx, conf.HouseServiceIndex, req)
 	if err != nil {
-		utils.NewLog().Info("json.Unmarshal(response.Data, &areas) error", err)
-		utils.Resp(resp, utils.RECODE_SERVERERR)
-		ctx.JSON(http.StatusOK, resp)
+		utils.NewLog().Error("rpc GetAreas error")
 		return
 	}
+	//获得返回数据
+	response := res.(*house_kitex_gen.Response)
+	//utils.NewLog().Info("response.Data:", response.Data)
+	//反序列化
+	err2 := json.Unmarshal(response.Data, &areas)
+	if err2 != nil {
+		utils.NewLog().Info("json.Unmarshal(response.Data, &areas) error", err)
+		ctx.JSON(http.StatusOK, res)
+		return
+	}
+	utils.NewLog().Info("areas:", areas)
+	ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_OK, areas))
 	//存入本地缓存
 	utils.AreasCache.Set(conf.HouseAreasCacheIndex, response.Data)
 	utils.NewLog().Info("utils.AreasCache.Set:", utils.AreasCache.Len())
-	resp["data"] = areas
-	ctx.JSON(http.StatusOK, resp)
 	return
 
 }

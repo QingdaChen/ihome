@@ -69,3 +69,17 @@ func (s *UserServiceImpl) Login(ctx context.Context, req *kitex_gen.LoginRequest
 	return &sessionResp, nil
 
 }
+
+// SessionAuth implements the UserServiceImpl interface.
+func (s *UserServiceImpl) SessionAuth(ctx context.Context, req *kitex_gen.SessionAuthRequest) (resp *kitex_gen.Response, err error) {
+	utils.NewLog().Info("SessionAuth :", req.SessionId)
+	checkResp := model.CheckRedisSession(req.SessionId)
+	utils.NewLog().Info("checkResp:", checkResp)
+	return &checkResp, nil
+}
+
+// GetSessionInfo implements the UserServiceImpl interface.
+func (s *UserServiceImpl) GetSessionInfo(ctx context.Context, req *kitex_gen.SessionRequest) (resp *kitex_gen.Response, err error) {
+	// TODO: Your code here...
+	return
+}

@@ -1,12 +1,11 @@
 package controller
 
 import (
-	"context"
 	"github.com/gin-gonic/gin"
 	user_kitex_gen "ihome/service/user/kitex_gen"
-	"ihome/service/user/kitex_gen/userservice"
 	"ihome/web/conf"
 	"ihome/web/model"
+	"ihome/web/remote"
 	"ihome/web/utils"
 	"net/http"
 )
@@ -44,23 +43,14 @@ func GetSMSCd(ctx *gin.Context) {
 	utils.SMSCache.Set(phone, []byte("1"))
 	//utils.NewLog().Info("cache:", utils.InterfaceCache)
 
-	//连接服务
-	result, resp := utils.GetService(conf.UserServiceIndex)
-	if utils.RECODE_OK != resp[conf.ErrorNoIndex].(string) {
-		ctx.JSON(http.StatusOK, resp)
-		return
-	}
-	service := result.(userservice.Client)
-
 	utils.NewLog().Info("GetSMSCd..." + phone + ":" + imgCode + ":" + uuid)
-
 	//发送短信
-	req := &user_kitex_gen.SMSRequest{Phone: phone, ImgCode: imgCode, Uuid: uuid}
-	response, err := service.SendSMS(context.Background(), req)
-	utils.NewLog().Info("SendSMS...", err)
-	utils.Resp(resp, response.Errno)
-	ctx.JSON(http.StatusOK, resp)
-	return
+	req := user_kitex_gen.SMSRequest{Phone: phone, ImgCode: imgCode, Uuid: uuid}
+	res, err := remote.RPC(ctx, conf.UserServiceIndex, req)
+	if err != nil {
+		utils.NewLog().Info("SendSMS...", err)
+	}
+	ctx.JSON(http.StatusOK, res)
 
 }
 
@@ -75,19 +65,13 @@ func Register(ctx *gin.Context) {
 		return
 	}
 	//连接服务
-	result, resp := utils.GetService(conf.UserServiceIndex)
-	if utils.RECODE_OK != resp[conf.ErrorNoIndex].(string) {
-		ctx.JSON(http.StatusOK, resp)
-		return
-	}
-	service := result.(userservice.Client)
-	req := &user_kitex_gen.RegRequest{Phone: register.Phone,
+	req := user_kitex_gen.RegRequest{Phone: register.Phone,
 		Password: register.Password, SmsCode: register.SmsCode}
-	response, _ := service.Register(ctx, req)
-	utils.NewLog().Info("service.Register:", response)
-	utils.Resp(resp, response.Errno)
-	ctx.JSON(http.StatusOK, resp)
-	return
+	res, err2 := remote.RPC(ctx, conf.UserServiceIndex, req)
+	if err2 != nil {
+		utils.NewLog().Info("rpc Register error:", err)
+	}
+	ctx.JSON(http.StatusOK, res)
 
 }
 
@@ -100,28 +84,76 @@ func PostLogin(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SERVERERR, nil))
 		return
 	}
-	//连接服务
-	result, resp := utils.GetService(conf.UserServiceIndex)
-	if utils.RECODE_OK != resp[conf.ErrorNoIndex].(string) {
-		ctx.JSON(http.StatusOK, resp)
-		return
-	}
-	service := result.(userservice.Client)
-	req := &user_kitex_gen.LoginRequest{Phone: loginUser.Phone, Password: loginUser.Password}
-	response, err2 := service.Login(ctx, req)
+
+	req := user_kitex_gen.LoginRequest{Phone: loginUser.Phone, Password: loginUser.Password}
+	res, err2 := remote.RPC(ctx, conf.UserServiceIndex, req)
 	if err2 != nil {
-		utils.NewLog().Error("LoginRequest error:", err2)
-		resp = utils.Response(utils.RECODE_SERVERERR, nil)
-		ctx.JSON(http.StatusOK, resp)
+		utils.NewLog().Error("rpc LoginRequest error:", err2)
+
 		return
 	}
-	if utils.RECODE_OK == response.Errno {
-		//如果登录成功就保存cookie
-		utils.NewLog().Info("login response:", string(response.Data))
-		ctx.SetCookie(conf.LoginCookieName, string(response.Data),
-			conf.LoginCookieTimeOut, "/", conf.UserServerIp, false, true)
+	response := res.(*user_kitex_gen.Response)
+	//登录成功就保存session
+	utils.NewLog().Info("login response:", string(response.Data))
+	ctx.SetCookie(conf.LoginCookieName, string(response.Data),
+		conf.LoginCookieTimeOut, "/", "", false, true)
+	ctx.JSON(http.StatusOK, res)
+	return
+}
+
+//SessionAuth session鉴权
+func SessionAuth(router *gin.Engine) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		sessionId, err := ctx.Cookie(conf.LoginCookieName) // 获得cookie seesionId
+		utils.NewLog().Info("sessionId:", sessionId)
+		if err != nil || sessionId == "" {
+			//cookie未存在或过期直接返回
+			utils.NewLog().Info("cookie未存在或过期直接返回:")
+			ctx.Redirect(http.StatusTemporaryRedirect, conf.LoginHtmlLocation)
+			ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SESSIONERR, nil))
+			ctx.Abort()
+			//r.HandleContext(ctx)
+			return
+		}
+
+		//连接user服务 查询session
+
+		req := user_kitex_gen.SessionAuthRequest{SessionId: sessionId}
+		res, err2 := remote.RPC(ctx, conf.UserServiceIndex, req)
+		utils.NewLog().Info("SessionAuthRequest result:", res, err2)
+		if err2 != nil {
+			utils.NewLog().Error("rpc SessionAuth error:", err2)
+			ctx.Redirect(http.StatusTemporaryRedirect, conf.LoginHtmlLocation)
+			ctx.JSON(http.StatusOK, res)
+			ctx.Abort()
+			return
+		}
+
+		response := res.(*user_kitex_gen.Response)
+		utils.NewLog().Info("rpc response:", response)
+		//验证失败
+		if utils.RECODE_OK != response.Errno {
+			utils.NewLog().Info("SessionAuth fail:", err2, response)
+
+			//utils.NewLog().Info("redirect...")
+
+			//ctx.Redirect(http.StatusTemporaryRedirect, "/api/v1.0/test")
+
+			ctx.Request.RequestURI = "http://192.168.31.219:8088/home/login.html"
+
+			//ctx.JSON(http.StatusTemporaryRedirect, res)
+			//utils.NewLog().Infof("cctx...%v", ctx)
+			router.HandleContext(ctx)
+			ctx.Abort()
+
+			return
+		}
+		ctx.Next()
+		return
 	}
-	resp = utils.Response(response.Errno, nil)
-	ctx.JSON(http.StatusOK, resp)
+}
+
+func Test(ctx *gin.Context) {
+	ctx.Redirect(http.StatusTemporaryRedirect, "http://192.168.31.219:8088/home/login.html")
 	return
 }

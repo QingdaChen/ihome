@@ -31,6 +31,8 @@ func TestRedis2() {
 		DB:       0,  // use default DB
 	})
 	utils.NewLog().Info("conn..", conn)
+	result, _ := conn.Exists(ctx, "1").Result()
+	utils.NewLog().Info("result..", result)
 	//conn.SetEX(ctx, uuid, code, conf.RedisTimeOut)
 
 }

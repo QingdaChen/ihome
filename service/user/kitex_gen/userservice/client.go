@@ -14,6 +14,8 @@ type Client interface {
 	SendSMS(ctx context.Context, Req *kitex_gen.SMSRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 	Register(ctx context.Context, Req *kitex_gen.RegRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 	Login(ctx context.Context, Req *kitex_gen.LoginRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
+	SessionAuth(ctx context.Context, Req *kitex_gen.SessionAuthRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
+	GetSessionInfo(ctx context.Context, Req *kitex_gen.SessionRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -58,4 +60,14 @@ func (p *kUserServiceClient) Register(ctx context.Context, Req *kitex_gen.RegReq
 func (p *kUserServiceClient) Login(ctx context.Context, Req *kitex_gen.LoginRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.Login(ctx, Req)
+}
+
+func (p *kUserServiceClient) SessionAuth(ctx context.Context, Req *kitex_gen.SessionAuthRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.SessionAuth(ctx, Req)
+}
+
+func (p *kUserServiceClient) GetSessionInfo(ctx context.Context, Req *kitex_gen.SessionRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetSessionInfo(ctx, Req)
 }

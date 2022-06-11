@@ -141,9 +141,13 @@ func SaveRedisSession(data []byte) kitex_gen.Response {
 		utils.NewLog().Error("json.Unmarshal error:", err)
 		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
 	}
+	utils.NewLog().Info("user.Id:", user.Mobile)
 	//将用户Id加密
-	idHash := utils.Encryption(strconv.Itoa(user.ID))
-	_, err = conn.SetEX(ctx, conf.SessionLoginIndex+"_"+idHash, data,
+	//utils.NewLog().Info("encrypt ", encrypt)
+	phoneHash, _ := utils.AesEcpt.AesBase64Encrypt(user.Mobile)
+	//utils.NewLog().Info("passwd:", idHash)
+	//strId := strconv.Itoa(user.ID)
+	_, err = conn.SetEX(ctx, conf.SessionLoginIndex+"_"+phoneHash, data,
 		conf.SessionLoginTimeOut*time.Hour).Result()
 	utils.NewLog().Info("save err:", err)
 	if err != nil {
@@ -151,6 +155,25 @@ func SaveRedisSession(data []byte) kitex_gen.Response {
 		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
 	}
 
-	return utils.UserResponse(utils.RECODE_OK, []byte(idHash))
+	return utils.UserResponse(utils.RECODE_OK, []byte(phoneHash))
 
+}
+
+//CheckRedisSession session检查
+func CheckRedisSession(sessionId string) kitex_gen.Response {
+	conn := Client.Conn(ctx)
+	defer conn.Close()
+	utils.NewLog().Info("sessionId:", sessionId)
+	result, err := conn.Exists(ctx, conf.SessionLoginIndex+"_"+sessionId).Result()
+	utils.NewLog().Info("check result:", result)
+	if err != nil {
+		utils.NewLog().Error("conn.Exists error:", err)
+		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
+	}
+	if result == 0 {
+		utils.NewLog().Info("user not login:", result)
+		return utils.UserResponse(utils.RECODE_SESSIONERR, nil)
+	}
+
+	return utils.UserResponse(utils.RECODE_OK, nil)
 }

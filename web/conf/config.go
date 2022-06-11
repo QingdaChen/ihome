@@ -59,5 +59,10 @@ const (
 	DataIndex     string = "data"
 )
 
+// LoginHtmlLocation file location
+const (
+	LoginHtmlLocation string = "/home/login.html"
+)
+
 var AccessId string = "LTAI5tCuiKcEcUEoJkoXZxQX"
 var AccessSecret string = "aMSOHFuPS3vXhHyAJPnpoL32qFOaGw"

@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"github.com/cloudwego/kitex/client"
+	"github.com/gin-gonic/gin"
 	"ihome/service/captcha/kitex_gen/captchaservice"
 	"ihome/service/house/kitex_gen/houseservice"
 	"ihome/service/user/kitex_gen/userservice"
@@ -11,10 +12,10 @@ import (
 	"strconv"
 )
 
-func GetService(serviceName string) (interface{}, map[string]interface{}) {
-	resp := make(map[string]interface{})
+func GetService(ctx *gin.Context, serviceName string) interface{} {
 	var service interface{}
 	var err error
+	utils.NewLog().Info("serviceName:", serviceName)
 	switch serviceName {
 	case conf.CaptchaServiceIndex:
 		service, err = captchaservice.NewClient(conf.CaptchaServiceIndex,
@@ -23,18 +24,20 @@ func GetService(serviceName string) (interface{}, map[string]interface{}) {
 		service, err = userservice.NewClient(conf.UserServiceIndex,
 			client.WithHostPorts(conf.UserServerIp+":"+strconv.Itoa(conf.UserServerPort)))
 	case conf.HouseServiceIndex:
+		utils.NewLog().Info("start GetService HouseServiceIndex...")
 		service, err = houseservice.NewClient(conf.HouseServiceIndex,
 			client.WithHostPorts(conf.HouseServerIp+":"+strconv.Itoa(conf.HouseServerPort)))
 	default:
+		utils.NewLog().Info("default")
 		service = nil
 		err = errors.New("no service error")
 	}
 	if err != nil {
 		NewLog().Error("get service error:", err)
-		Resp(resp, utils.RECODE_SERVERERR)
-		return nil, resp
+		//ctx.JSON(http.StatusOK, Response(RECODE_SERVERERR, nil))
+		return nil
+
 	}
-	Resp(resp, utils.RECODE_OK)
-	return service, resp
+	return service
 
 }

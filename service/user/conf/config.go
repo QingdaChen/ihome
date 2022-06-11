@@ -19,4 +19,5 @@ const (
 	SessionRedisPort    int    = 6379
 	SessionLoginIndex   string = "session_login"
 	SessionLoginTimeOut        = 12 //hour
+	SessionSecret       string = "asdggcgc"
 )
