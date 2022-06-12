@@ -28,6 +28,8 @@ func NewServiceInfo() *kitex.ServiceInfo {
 		"SessionAuth":    kitex.NewMethodInfo(sessionAuthHandler, newSessionAuthArgs, newSessionAuthResult, false),
 		"GetSessionInfo": kitex.NewMethodInfo(getSessionInfoHandler, newGetSessionInfoArgs, newGetSessionInfoResult, false),
 		"DeleteSession":  kitex.NewMethodInfo(deleteSessionHandler, newDeleteSessionArgs, newDeleteSessionResult, false),
+		"GetUserInfo":    kitex.NewMethodInfo(getUserInfoHandler, newGetUserInfoArgs, newGetUserInfoResult, false),
+		"UpdateUserInfo": kitex.NewMethodInfo(updateUserInfoHandler, newUpdateUserInfoArgs, newUpdateUserInfoResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "user",
@@ -661,6 +663,212 @@ func (p *DeleteSessionResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
+func getUserInfoHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(kitex_gen.GetUserRequest)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(kitex_gen.UserService).GetUserInfo(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := st.SendMsg(resp); err != nil {
+			return err
+		}
+	case *GetUserInfoArgs:
+		success, err := handler.(kitex_gen.UserService).GetUserInfo(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*GetUserInfoResult)
+		realResult.Success = success
+	}
+	return nil
+}
+func newGetUserInfoArgs() interface{} {
+	return &GetUserInfoArgs{}
+}
+
+func newGetUserInfoResult() interface{} {
+	return &GetUserInfoResult{}
+}
+
+type GetUserInfoArgs struct {
+	Req *kitex_gen.GetUserRequest
+}
+
+func (p *GetUserInfoArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, fmt.Errorf("No req in GetUserInfoArgs")
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *GetUserInfoArgs) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.GetUserRequest)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var GetUserInfoArgs_Req_DEFAULT *kitex_gen.GetUserRequest
+
+func (p *GetUserInfoArgs) GetReq() *kitex_gen.GetUserRequest {
+	if !p.IsSetReq() {
+		return GetUserInfoArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *GetUserInfoArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+type GetUserInfoResult struct {
+	Success *kitex_gen.Response
+}
+
+var GetUserInfoResult_Success_DEFAULT *kitex_gen.Response
+
+func (p *GetUserInfoResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, fmt.Errorf("No req in GetUserInfoResult")
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *GetUserInfoResult) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.Response)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *GetUserInfoResult) GetSuccess() *kitex_gen.Response {
+	if !p.IsSetSuccess() {
+		return GetUserInfoResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *GetUserInfoResult) SetSuccess(x interface{}) {
+	p.Success = x.(*kitex_gen.Response)
+}
+
+func (p *GetUserInfoResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func updateUserInfoHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(kitex_gen.UpdateUserRequest)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(kitex_gen.UserService).UpdateUserInfo(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := st.SendMsg(resp); err != nil {
+			return err
+		}
+	case *UpdateUserInfoArgs:
+		success, err := handler.(kitex_gen.UserService).UpdateUserInfo(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*UpdateUserInfoResult)
+		realResult.Success = success
+	}
+	return nil
+}
+func newUpdateUserInfoArgs() interface{} {
+	return &UpdateUserInfoArgs{}
+}
+
+func newUpdateUserInfoResult() interface{} {
+	return &UpdateUserInfoResult{}
+}
+
+type UpdateUserInfoArgs struct {
+	Req *kitex_gen.UpdateUserRequest
+}
+
+func (p *UpdateUserInfoArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, fmt.Errorf("No req in UpdateUserInfoArgs")
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *UpdateUserInfoArgs) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.UpdateUserRequest)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var UpdateUserInfoArgs_Req_DEFAULT *kitex_gen.UpdateUserRequest
+
+func (p *UpdateUserInfoArgs) GetReq() *kitex_gen.UpdateUserRequest {
+	if !p.IsSetReq() {
+		return UpdateUserInfoArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *UpdateUserInfoArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+type UpdateUserInfoResult struct {
+	Success *kitex_gen.Response
+}
+
+var UpdateUserInfoResult_Success_DEFAULT *kitex_gen.Response
+
+func (p *UpdateUserInfoResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, fmt.Errorf("No req in UpdateUserInfoResult")
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *UpdateUserInfoResult) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.Response)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *UpdateUserInfoResult) GetSuccess() *kitex_gen.Response {
+	if !p.IsSetSuccess() {
+		return UpdateUserInfoResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *UpdateUserInfoResult) SetSuccess(x interface{}) {
+	p.Success = x.(*kitex_gen.Response)
+}
+
+func (p *UpdateUserInfoResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -726,6 +934,26 @@ func (p *kClient) DeleteSession(ctx context.Context, Req *kitex_gen.SessionDelet
 	_args.Req = Req
 	var _result DeleteSessionResult
 	if err = p.c.Call(ctx, "DeleteSession", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetUserInfo(ctx context.Context, Req *kitex_gen.GetUserRequest) (r *kitex_gen.Response, err error) {
+	var _args GetUserInfoArgs
+	_args.Req = Req
+	var _result GetUserInfoResult
+	if err = p.c.Call(ctx, "GetUserInfo", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) UpdateUserInfo(ctx context.Context, Req *kitex_gen.UpdateUserRequest) (r *kitex_gen.Response, err error) {
+	var _args UpdateUserInfoArgs
+	_args.Req = Req
+	var _result UpdateUserInfoResult
+	if err = p.c.Call(ctx, "UpdateUserInfo", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

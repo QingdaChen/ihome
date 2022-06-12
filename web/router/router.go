@@ -35,6 +35,8 @@ func InitRouters() *gin.Engine {
 
 		//下面的方法都得sessionAuth
 		v1.Use(controller.SessionAuth(router))
+		v1.GET("/user", controller.GetUserInfo) //获取用户信息
+		v1.PUT("/user/name", controller.UpdateUserInfo)
 
 	}
 	//router.Use(SessionAuthorize(router))

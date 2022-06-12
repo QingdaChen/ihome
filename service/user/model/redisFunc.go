@@ -16,7 +16,7 @@ var Client *redis2.Client
 
 var ctx = context.Background()
 
-func InitRedis() {
+func init() {
 	Client = redis2.NewClient(&redis2.Options{
 		Addr:        conf.RedisIp + ":" + strconv.Itoa(conf.RedisPort),
 		Password:    "", // no password set
@@ -26,48 +26,6 @@ func InitRedis() {
 	})
 
 }
-
-//func InitPool() {
-//	Pool = &redis.Pool{
-//		// Maximum number of connections allocated by the pool at a given time.
-//		// When zero, there is no limit on the number of connections in the pool.
-//		//最大活跃连接数，0代表无限
-//		MaxActive: 888,
-//		//最大闲置连接数
-//		// Maximum number of idle connections in the pool.
-//		MaxIdle: 20,
-//		//闲置连接的超时时间
-//		// Close connections after remaining idle for this duration. If the value
-//		// is zero, then idle connections are not closed. Applications should set
-//		// the timeout to a value less than the server's timeout.
-//		IdleTimeout: time.Second * 100,
-//		//定义拨号获得连接的函数
-//		// Dial is an application supplied function for creating and configuring a
-//		// connection.
-//		//
-//		// The connection returned from Dial must not be in a special state
-//		// (subscribed to pubsub channel, transaction started, ...).
-//		Dial: func() (redis.Conn, error) {
-//			return redis.Dial("tcp", conf.RedisIp+":"+strconv.Itoa(conf.RedisPort))
-//		},
-//	}
-//	//延迟关闭连接池
-//	defer Pool.Close()
-//
-//}
-
-//func SaveImgCode(uuid, code string, pool *redis.Pool) error {
-//	//获取redis连接池连接
-//	utils.NewLog().Info("pool..", pool)
-//	conn := Pool.Get()
-//	utils.NewLog().Info("conn..", conn)
-//	defer conn.Close()
-//	// 2. 操作数据库
-//	_, err := conn.Do("setex", uuid, conf.RedisTimeOut, code)
-//
-//	return err
-//
-//}
 
 /*
   短信函数
@@ -145,9 +103,9 @@ func SaveRedisSession(data []byte) kitex_gen.Response {
 	//将用户Id加密
 	//utils.NewLog().Info("encrypt ", encrypt)
 	phoneHash, _ := utils.AesEcpt.AesBase64Encrypt(user.Mobile)
-	//utils.NewLog().Info("passwd:", idHash)
-	//strId := strconv.Itoa(user.ID)
-	_, err = conn.SetEX(ctx, conf.SessionLoginIndex+"_"+phoneHash, data,
+
+	//直接存入用户名...
+	_, err = conn.SetEX(ctx, conf.SessionLoginIndex+"_"+phoneHash, []byte(user.Name),
 		conf.SessionLoginTimeOut*time.Hour).Result()
 	utils.NewLog().Info("save err:", err)
 	if err != nil {
@@ -185,28 +143,71 @@ func GetSessionInfo(sessionId string) kitex_gen.Response {
 	utils.NewLog().Info("GetSessionInfo:", sessionId)
 	result, err := conn.Get(ctx, conf.SessionLoginIndex+"_"+sessionId).Result()
 	utils.NewLog().Info("GetSessionInfo result:", result)
-	if err != nil {
-		utils.NewLog().Error("conn.Get error:", err)
-		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
-	}
 	if result == "" {
-		utils.NewLog().Error("GetSessionInfo nil:", err)
+		utils.NewLog().Info("GetSessionInfo nil:", err)
 		return utils.UserResponse(utils.RECODE_SESSIONERR, nil)
 	}
-	return utils.UserResponse(utils.RECODE_OK, []byte(result))
+	user := &User{}
+	user.Name = result
+	data, _ := json.Marshal(user)
+	return utils.UserResponse(utils.RECODE_OK, data)
 }
 
-//DeleteSession 获取session信息
-func DeleteSession(sessionId string) kitex_gen.Response {
+//updateSessionInfo 更新session信息
+func UpdateSessionInfo(sessionId string, updateName string) kitex_gen.Response {
 	conn := Client.Conn(ctx)
 	defer conn.Close()
-	utils.NewLog().Info("DeleteSession:", sessionId)
-	_, err := conn.Del(ctx, conf.SessionLoginIndex+"_"+sessionId).Result()
+	//直接存入用户名...
+	_, err := conn.SetEX(ctx, conf.SessionLoginIndex+"_"+sessionId, []byte(updateName),
+		conf.SessionLoginTimeOut*time.Hour).Result()
+	utils.NewLog().Info("UpdateSessionInfo:", err)
+	if err != nil {
+		utils.NewLog().Info("conn.SetEX error:", err)
+		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
+	}
+
+	return utils.UserResponse(utils.RECODE_OK, nil)
+}
+
+//DeleteKey 根据sessionId删除session信息
+func DeleteKey(key string) kitex_gen.Response {
+	conn := Client.Conn(ctx)
+	defer conn.Close()
+	utils.NewLog().Info("DeleteKeyById:", key)
+	_, err := conn.Del(ctx, key).Result()
 	//utils.NewLog().Info("GetSessionInfo result:", result)
 	if err != nil {
 		utils.NewLog().Error("conn.Get error:", err)
 		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
 	}
 
+	return utils.UserResponse(utils.RECODE_OK, nil)
+}
+
+//GetRedisUserInfo 获取用户信息
+func GetRedisUserInfo(sessionId string) kitex_gen.Response {
+	conn := Client.Conn(ctx)
+	defer conn.Close()
+	utils.NewLog().Info("GetRedisUserInfo:", sessionId)
+	result, err := conn.Get(ctx, conf.UserRedisIndex+"_"+sessionId).Result()
+	utils.NewLog().Info("GetRedisUserInfo result:", result)
+	if result == "" {
+		utils.NewLog().Info("GetRedisUserInfo nil:", err)
+		return utils.UserResponse(utils.RECODE_SESSIONERR, nil)
+	}
+	return utils.UserResponse(utils.RECODE_OK, []byte(result))
+}
+
+//SaveRedisUserInfo 保存用户信息
+func SaveRedisUserInfo(sessionId string, data []byte) kitex_gen.Response {
+	conn := Client.Conn(ctx)
+	defer conn.Close()
+	utils.NewLog().Info("SaveRedisUserInfo:", sessionId)
+	_, err := conn.Set(ctx, conf.UserRedisIndex+"_"+sessionId, data, conf.UserInfoTimeOut*time.Hour).Result()
+	utils.NewLog().Info("SaveRedisUserInfo result:", err)
+	if err != nil {
+		utils.NewLog().Info("SaveRedisUserInfo fail:", err)
+		return utils.UserResponse(utils.RECODE_SESSIONERR, nil)
+	}
 	return utils.UserResponse(utils.RECODE_OK, nil)
 }

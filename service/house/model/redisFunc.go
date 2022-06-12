@@ -13,7 +13,7 @@ var Client *redis2.Client
 
 var ctx = context.Background()
 
-func InitRedis() {
+func init() {
 	Client = redis2.NewClient(&redis2.Options{
 		Addr:        conf.RedisIp + ":" + strconv.Itoa(conf.RedisPort),
 		Password:    "", // no password set

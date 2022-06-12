@@ -57,3 +57,39 @@ func Login(phone, password string) kitex_gen.Response {
 
 	return utils.UserResponse(utils.RECODE_OK, data)
 }
+
+//GetUserInfo 获取用户信息 sessionId->phone
+func GetUserInfo(sessionId string) kitex_gen.Response {
+	user := User{}
+	utils.NewLog().Info("GetUserInfo MysqlConn:", MysqlConn.DB().Ping())
+	//查询用户信息
+	phone, _ := utils.AesEcpt.AesBase64Decrypt(sessionId)
+	res := MysqlConn.Where("mobile = ?", phone).First(&user)
+	utils.NewLog().Info("MysqlConn.Where:", res.Error)
+	if user.Name == "" {
+		utils.NewLog().Info("not register:", user)
+		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
+
+	}
+	data, err := json.Marshal(&user)
+	if err != nil {
+		utils.NewLog().Error("json.Marshal error", err)
+		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
+	}
+	return utils.UserResponse(utils.RECODE_OK, data)
+}
+
+func UpdateUserInfo(sessionId string, updateName string) kitex_gen.Response {
+	utils.NewLog().Info("UpdateUserInfo MysqlConn:", MysqlConn.DB().Ping())
+	//更新用户信息
+	user := &User{}
+	phone, _ := utils.AesEcpt.AesBase64Decrypt(sessionId)
+	utils.NewLog().Info("phone name:", phone, updateName)
+	err := MysqlConn.Debug().Model(user).Where("mobile = ?", phone).Update("name", updateName).Error
+	utils.NewLog().Info("MysqlConn.Where:", err)
+	if err != nil {
+		utils.NewLog().Error("update mysql fail:", err)
+		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
+	}
+	return utils.UserResponse(utils.RECODE_OK, nil)
+}

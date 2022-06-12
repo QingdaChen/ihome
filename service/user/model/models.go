@@ -83,7 +83,7 @@ type OrderHouse struct {
 
 var MysqlConn *gorm.DB
 
-func InitDb() {
+func init() {
 	//sql.Open()
 	str := fmt.Sprintf("%s:%s@tcp(%s:%d)/search_house?charset=utf8&parseTime=True&loc=Local",
 		conf.MysqlUser, conf.MysqlPasswd, conf.MysqlIp, conf.MysqlPort)

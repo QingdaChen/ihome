@@ -1,23 +1,27 @@
 package main
 
 import (
+	"github.com/cloudwego/kitex/pkg/limit"
 	"github.com/cloudwego/kitex/server"
+	trace "github.com/kitex-contrib/tracer-opentracing"
 	"ihome/service/user/conf"
 	kitex_gen "ihome/service/user/kitex_gen/userservice"
-	"ihome/service/user/model"
 	"ihome/service/utils"
 	"net"
 )
 
 func main() {
 	//初始化redis
-	model.InitRedis()
-	utils.NewLog().Info("init redis..", model.Client)
-	//初始化mysql
-	model.InitDb()
-	utils.NewLog().Info("init mysql..", model.MysqlConn)
+	//model.InitRedis()
+	//utils.NewLog().Info("init redis..", model.Client)
+	////初始化mysql
+	//model.InitDb()
+	//utils.NewLog().Info("init mysql..", model.MysqlConn)
 	svr := kitex_gen.NewServer(new(UserServiceImpl),
-		server.WithServiceAddr(&net.TCPAddr{Port: conf.ServerPort, IP: net.ParseIP(conf.ServerIp)}))
+		server.WithServiceAddr(&net.TCPAddr{Port: conf.ServerPort, IP: net.ParseIP(conf.ServerIp)}),
+		server.WithLimit(&limit.Option{MaxConnections: conf.ServerMaxConnections, MaxQPS: conf.ServerMaxQPS}), // limit
+		server.WithMuxTransport(),                       // Multiplex
+		server.WithSuite(trace.NewDefaultServerSuite())) // tracer)
 	err := svr.Run()
 	if err != nil {
 		utils.NewLog().Error("service start error", err)

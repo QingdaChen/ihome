@@ -4,8 +4,10 @@ import "time"
 
 // user服务
 const (
-	ServerIp   = "192.168.31.219"
-	ServerPort = 9002
+	ServerIp             string = "192.168.31.219"
+	ServerPort           int    = 9002
+	ServerMaxConnections int    = 1000
+	ServerMaxQPS         int    = 100
 )
 
 //redis

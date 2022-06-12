@@ -17,7 +17,7 @@ import (
 )
 
 func RPC(ctx *gin.Context, serviceName string, req interface{}) (interface{}, error) {
-	result := utils.GetService(ctx, serviceName)
+	result := GetService(ctx, serviceName)
 	utils.NewLog().Info("GetService:", result)
 	if result == nil {
 		return nil, errors.New("utils.GetService error")
@@ -79,17 +79,22 @@ func handlerUserService(ctx *gin.Context, result interface{}, req interface{}) (
 		utils.NewLog().Info("SessionAuthRequest")
 		request := req.(user_kitex_gen.SessionAuthRequest)
 		response, err = service.SessionAuth(ctx, &request)
-		utils.NewLog().Info("SessionAuthRequest:", response)
 	case user_kitex_gen.SessionRequest:
 		utils.NewLog().Info("SessionRequest")
 		request := req.(user_kitex_gen.SessionRequest)
 		response, err = service.GetSessionInfo(ctx, &request)
-		utils.NewLog().Info("SessionRequest:", response)
 	case user_kitex_gen.SessionDeleteRequest:
 		utils.NewLog().Info("SessionDeleteRequest")
 		request := req.(user_kitex_gen.SessionDeleteRequest)
 		response, err = service.DeleteSession(ctx, &request)
-		utils.NewLog().Info("SessionDeleteRequest:", response)
+	case user_kitex_gen.GetUserRequest:
+		utils.NewLog().Info("GetUserRequest")
+		request := req.(user_kitex_gen.GetUserRequest)
+		response, err = service.GetUserInfo(ctx, &request)
+	case user_kitex_gen.UpdateUserRequest:
+		utils.NewLog().Info("UpdateUserRequest")
+		request := req.(user_kitex_gen.UpdateUserRequest)
+		response, err = service.UpdateUserInfo(ctx, &request)
 	default:
 		utils.NewLog().Info("handlerUserService default")
 		err = errors.New("handlerUserService error")
@@ -107,7 +112,7 @@ func handlerCaptchaService(ctx *gin.Context, result interface{}, req interface{}
 	response, err = service.GetCaptcha(ctx, &request)
 	var img captcha.Image
 	//json反序列化
-	err2 := json.Unmarshal(response.(captcha_kitex_gen.Response).Img, &img)
+	err2 := json.Unmarshal(response.(*captcha_kitex_gen.Response).Img, &img)
 	if err2 == nil {
 		utils.NewLog().Error("json.Unmarshal success")
 		//写入验证码图像
