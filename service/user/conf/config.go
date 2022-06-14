@@ -1,5 +1,7 @@
 package conf
 
+import "time"
+
 // user服务
 const (
 	ServerIp             string = "192.168.31.219"
@@ -32,4 +34,20 @@ const (
 //SMS
 const (
 	PhoneCode string = "123456"
+)
+
+//fastDfs
+const (
+	FastDfsCfgFilePath string = "conf/fastDfs.conf"
+)
+
+//nginx
+const (
+	NginxUrl string = "http://192.168.31.219:8888"
+)
+
+//协程池子
+const (
+	PoolSize           int           = 100
+	PoolExpiryDuration time.Duration = 30
 )

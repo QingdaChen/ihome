@@ -64,5 +64,10 @@ const (
 	LoginHtmlLocation string = "/home/login.html"
 )
 
+//nginx
+const (
+	NginxUrl string = "http://192.168.31.219:8888"
+)
+
 var AccessId string = "LTAI5tCuiKcEcUEoJkoXZxQX"
 var AccessSecret string = "aMSOHFuPS3vXhHyAJPnpoL32qFOaGw"

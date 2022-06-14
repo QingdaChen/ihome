@@ -30,6 +30,7 @@ func NewServiceInfo() *kitex.ServiceInfo {
 		"DeleteSession":  kitex.NewMethodInfo(deleteSessionHandler, newDeleteSessionArgs, newDeleteSessionResult, false),
 		"GetUserInfo":    kitex.NewMethodInfo(getUserInfoHandler, newGetUserInfoArgs, newGetUserInfoResult, false),
 		"UpdateUserInfo": kitex.NewMethodInfo(updateUserInfoHandler, newUpdateUserInfoArgs, newUpdateUserInfoResult, false),
+		"UploadImg":      kitex.NewMethodInfo(uploadImgHandler, newUploadImgArgs, newUploadImgResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "user",
@@ -869,6 +870,109 @@ func (p *UpdateUserInfoResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
+func uploadImgHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(kitex_gen.UploadImgRequest)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(kitex_gen.UserService).UploadImg(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := st.SendMsg(resp); err != nil {
+			return err
+		}
+	case *UploadImgArgs:
+		success, err := handler.(kitex_gen.UserService).UploadImg(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*UploadImgResult)
+		realResult.Success = success
+	}
+	return nil
+}
+func newUploadImgArgs() interface{} {
+	return &UploadImgArgs{}
+}
+
+func newUploadImgResult() interface{} {
+	return &UploadImgResult{}
+}
+
+type UploadImgArgs struct {
+	Req *kitex_gen.UploadImgRequest
+}
+
+func (p *UploadImgArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, fmt.Errorf("No req in UploadImgArgs")
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *UploadImgArgs) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.UploadImgRequest)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var UploadImgArgs_Req_DEFAULT *kitex_gen.UploadImgRequest
+
+func (p *UploadImgArgs) GetReq() *kitex_gen.UploadImgRequest {
+	if !p.IsSetReq() {
+		return UploadImgArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *UploadImgArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+type UploadImgResult struct {
+	Success *kitex_gen.Response
+}
+
+var UploadImgResult_Success_DEFAULT *kitex_gen.Response
+
+func (p *UploadImgResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, fmt.Errorf("No req in UploadImgResult")
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *UploadImgResult) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.Response)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *UploadImgResult) GetSuccess() *kitex_gen.Response {
+	if !p.IsSetSuccess() {
+		return UploadImgResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *UploadImgResult) SetSuccess(x interface{}) {
+	p.Success = x.(*kitex_gen.Response)
+}
+
+func (p *UploadImgResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -954,6 +1058,16 @@ func (p *kClient) UpdateUserInfo(ctx context.Context, Req *kitex_gen.UpdateUserR
 	_args.Req = Req
 	var _result UpdateUserInfoResult
 	if err = p.c.Call(ctx, "UpdateUserInfo", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) UploadImg(ctx context.Context, Req *kitex_gen.UploadImgRequest) (r *kitex_gen.Response, err error) {
+	var _args UploadImgArgs
+	_args.Req = Req
+	var _result UploadImgResult
+	if err = p.c.Call(ctx, "UploadImg", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

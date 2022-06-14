@@ -9,17 +9,22 @@ import (
 	"time"
 )
 
+var redisClient *redis.Client
 var Lock *redisLock.RedisLock
 
 func init() {
-	var redisClient = redis.NewClient(&redis.Options{
+	redisClient = redis.NewClient(&redis.Options{
 		Addr:        conf.RedisIp + ":" + strconv.Itoa(conf.RedisPort),
 		Password:    "", // no password set
 		DB:          0,  // use default DB
 		PoolSize:    50,
 		PoolTimeout: 5000, //池连接超时时间
 	})
-	Lock = redisLock.NewRedisLock(redisClient, conf.RedisLockKey, conf.RedisLockValue)
+
+}
+
+func InitLock(key string) {
+	Lock = redisLock.NewRedisLock(redisClient, key, conf.RedisLockValue)
 }
 
 //尝试释放锁

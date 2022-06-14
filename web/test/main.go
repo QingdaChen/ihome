@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	redis2 "github.com/go-redis/redis/v8"
+	"github.com/tedcy/fdfs_client"
 	"ihome/web/conf"
 	"ihome/web/utils"
 	"strconv"
@@ -57,6 +58,16 @@ func main() {
 	//TestMysql()
 	//testEncryption()
 	//testCache()
-	testRedis2()
+	//testRedis2()
+	testFastDfs()
 
+}
+
+func testFastDfs() {
+	client, err := fdfs_client.NewClientWithConfig("./fastDfs.conf")
+	if err != nil {
+		utils.NewLog().Error("fdfs_client init error", err)
+	}
+	filename, err2 := client.UploadByFilename("./test.jpg")
+	utils.NewLog().Info("", filename, err2)
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"ihome/service/user/conf"
+	"ihome/service/user/handler"
 	"ihome/service/user/kitex_gen"
 	"ihome/service/user/model"
 	"ihome/service/utils"
@@ -101,56 +102,32 @@ func (s *UserServiceImpl) DeleteSession(ctx context.Context, req *kitex_gen.Sess
 // GetUserInfo implements the UserServiceImpl interface.
 func (s *UserServiceImpl) GetUserInfo(ctx context.Context, req *kitex_gen.GetUserRequest) (resp *kitex_gen.Response, err error) {
 	utils.NewLog().Debug("GetUserInfo start")
-	//先查redis
-	redisResp := model.GetRedisUserInfo(req.SessionId)
-	if utils.RECODE_OK == redisResp.Errno {
-		//redis查到了直接返回
-		utils.NewLog().Info("GetRedisUserInfo success!")
-		return &redisResp, nil
+	//查询用户信息
+	userResp := handler.GetUserInfoByHandler(req.SessionId)
+	if utils.RECODE_OK != userResp.Errno {
+		utils.NewLog().Error("getUserInfoByHandler error", userResp)
 	}
-	//查不到查数据库
-	mysqlResp := model.GetUserInfo(req.SessionId)
-	if utils.RECODE_OK != mysqlResp.Errno {
-		//失败了直接返回
-		utils.NewLog().Info("mysql GetUserInfo failed:", mysqlResp)
-		return &mysqlResp, nil
-	}
-	//写入redis
-	saveResp := model.SaveRedisUserInfo(req.SessionId, mysqlResp.Data)
-	if utils.RECODE_OK != saveResp.Errno {
-		//保存失败直接返回
-		utils.NewLog().Error("redis save error:", saveResp)
-
-	}
-	return &mysqlResp, nil
+	return &userResp, nil
 }
 
 // UpdateUserInfo implements the UserServiceImpl interface.
 func (s *UserServiceImpl) UpdateUserInfo(ctx context.Context, req *kitex_gen.UpdateUserRequest) (resp *kitex_gen.Response, err error) {
 	utils.NewLog().Debug("UpdateUserInfo start")
 	//使用分布式锁
-	err = model.Lock.Lock()
+	//model.InitLock(conf.RedisLockKey + "-user-" + req.SessionId)
+	//model.Lock.Lock()
 	if err != nil {
 		utils.NewLog().Error("get redisLock fail:", err)
 		response := utils.UserResponse(utils.RECODE_SERVERERR, nil)
 		return &response, nil
 	}
-	defer model.TryRelease()
-	//先删除缓存
-	delResp := model.DeleteKey(conf.UserRedisIndex + "_" + req.SessionId)
-	if utils.RECODE_OK != delResp.Errno {
-		//删除失败直接返回
-		utils.NewLog().Info("DeleteKey failed")
-		return &delResp, nil
-
+	//defer model.TryRelease()
+	//更新用户信息
+	userInfoResp := handler.UpdateUserInfoByHandler(req.SessionId, "name", req.UpdateName)
+	if utils.RECODE_OK != userInfoResp.Errno {
+		utils.NewLog().Info("UpdateUserInfoByHandler error:", userInfoResp)
+		return &userInfoResp, nil
 	}
-	//再更新数据库
-	updateResp := model.UpdateUserInfo(req.SessionId, req.UpdateName)
-	if utils.RECODE_OK != updateResp.Errno {
-		utils.NewLog().Info("UpdateUserInfo failed")
-		return &updateResp, nil
-	}
-
 	//在更新session
 	sessionResp := model.UpdateSessionInfo(req.SessionId, req.UpdateName)
 	if utils.RECODE_OK != sessionResp.Errno {
@@ -158,4 +135,46 @@ func (s *UserServiceImpl) UpdateUserInfo(ctx context.Context, req *kitex_gen.Upd
 		utils.NewLog().Info("UpdateSessionInfo failed")
 	}
 	return &sessionResp, nil
+}
+
+// UploadImg implements the UserServiceImpl interface.
+func (s *UserServiceImpl) UploadImg(ctx context.Context, req *kitex_gen.UploadImgRequest) (resp *kitex_gen.Response, err error) {
+	utils.NewLog().Debug("UploadImg start....")
+	//使用分布式锁，TODO 改进
+	//model.InitLock(conf.RedisLockKey + "-user-" + req.SessionId)
+	//model.Lock.Lock()
+	//defer model.TryRelease()
+	//先上传
+	//utils.NewLog().Info("base64:  ", req.ImgBase64)
+
+	uploadResp := model.FastDfsClient.UploadImg(req.ImgBase64, req.FileType)
+	if utils.RECODE_OK != uploadResp.Errno {
+		//TODO 存数据库记录
+		utils.NewLog().Info("UploadImg error", uploadResp)
+		return &uploadResp, nil
+	}
+	utils.NewLog().Info("uploadResp:", string(uploadResp.Data))
+	//更新缓存
+	//model.UpdateSessionInfo()
+	//查头像原url
+	userResp := handler.GetUserInfoByHandler(req.SessionId)
+	if utils.RECODE_OK != userResp.Errno {
+		//TODO 存数据库记录
+		utils.NewLog().Info("GetUserInfoByHandler error", userResp)
+		return &userResp, nil
+	}
+	//成功就更新数据库和缓存
+	updateResp := handler.UpdateUserInfoByHandler(req.SessionId, "avatar_url", (string)(uploadResp.Data))
+	if utils.RECODE_OK != updateResp.Errno {
+		//TODO 存数据库记录
+		utils.NewLog().Info("UpdateUserInfoByHandler error", updateResp)
+		return &updateResp, nil
+	}
+	//都成功启动协程删除原头像
+	handler.DeleteFileByHandler(userResp.Data)
+	//拼接头像地址
+	//fileName := fmt.Sprintf("%s/%s", conf.NginxUrl, (string)(uploadResp.Data))
+	//utils.NewLog().Debug("fileName :", fileName)
+	//uploadResp.Data = []byte(fileName)
+	return &uploadResp, nil
 }

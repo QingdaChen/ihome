@@ -1,14 +1,19 @@
 package controller
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	user_kitex_gen "ihome/service/user/kitex_gen"
 	"ihome/web/conf"
 	"ihome/web/model"
 	"ihome/web/remote"
 	"ihome/web/utils"
+	"io"
 	"net/http"
+	"strings"
 )
 
 //GetSession 获取session信息
@@ -98,6 +103,7 @@ func GetUserInfo(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, response)
 	}
 	utils.NewLog().Info("response:", user)
+	user.Avatar_url = fmt.Sprintf("%s/%s", conf.NginxUrl, user.Avatar_url)
 	ctx.JSON(http.StatusOK, utils.Response(response.Errno, user))
 }
 
@@ -127,6 +133,48 @@ func UpdateUserInfo(ctx *gin.Context) {
 	response := res.(*user_kitex_gen.Response)
 	utils.NewLog().Info("response:", response)
 	ctx.JSON(http.StatusOK, utils.Response(response.Errno, nil))
+}
+
+//PostAvatar 上传头像
+func PostAvatar(ctx *gin.Context) {
+	utils.NewLog().Info("PostAvatar start...")
+	//获取cookie
+	sessionId, err := ctx.Cookie(conf.LoginCookieName)
+	if err != nil || sessionId == "" {
+		//sessionId 不存在或者过期直接返回
+		utils.NewLog().Info("ctx.Cookie error:", err)
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SESSIONERR, nil))
+		return
+	}
+	file, head, err2 := ctx.Request.FormFile("avatar")
+	fileType := strings.Split(head.Filename, ".")[1]
+	utils.NewLog().Debug("fileType: ", fileType)
+	if err2 != nil {
+		utils.NewLog().Info("FormFile error:", err)
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SERVERERR, nil))
+		return
+	}
+	buf := bytes.NewBuffer(nil)
+	io.Copy(buf, file)
+	//base64编码
+	imgBase64 := base64.StdEncoding.EncodeToString(buf.Bytes())
+	//utils.NewLog().Info("imgBase64:  ", imgBase64)
+	//调用图像上传服务
+	req := user_kitex_gen.UploadImgRequest{SessionId: sessionId, FileType: fileType, ImgBase64: imgBase64}
+	res, err2 := remote.RPC(ctx, conf.UserServiceIndex, req)
+	if err2 != nil {
+		utils.NewLog().Info("remote.RPC error:", err2)
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SERVERERR, nil))
+		return
+	}
+	//更新成功
+	response := res.(*user_kitex_gen.Response)
+	utils.NewLog().Info("res:", string(response.Data))
+	userVo := &model.UserVo{}
+	userVo.Avatar_url = fmt.Sprintf("%s/%s", conf.NginxUrl, string(response.Data))
+	utils.NewLog().Info("response:", userVo.Avatar_url)
+	ctx.JSON(http.StatusOK, utils.Response(response.Errno, userVo))
+
 }
 
 func Test(ctx *gin.Context) {

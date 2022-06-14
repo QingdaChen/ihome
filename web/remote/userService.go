@@ -23,7 +23,7 @@ func init() {
 	service, err := userservice.NewClient(conf.UserServiceIndex,
 		client.WithHostPorts(conf.UserServerIp+":"+strconv.Itoa(conf.UserServerPort)),
 		client.WithMuxConnection(1),                       // mux
-		client.WithRPCTimeout(3*time.Second),              // rpc timeout
+		client.WithRPCTimeout(10*time.Second),             // rpc timeout
 		client.WithConnectTimeout(50*time.Millisecond),    // conn timeout
 		client.WithFailureRetry(retry.NewFailurePolicy()), // retry
 		client.WithSuite(trace.NewDefaultClientSuite()))   // tracer)

@@ -19,6 +19,7 @@ type Client interface {
 	DeleteSession(ctx context.Context, Req *kitex_gen.SessionDeleteRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 	GetUserInfo(ctx context.Context, Req *kitex_gen.GetUserRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 	UpdateUserInfo(ctx context.Context, Req *kitex_gen.UpdateUserRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
+	UploadImg(ctx context.Context, Req *kitex_gen.UploadImgRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -88,4 +89,9 @@ func (p *kUserServiceClient) GetUserInfo(ctx context.Context, Req *kitex_gen.Get
 func (p *kUserServiceClient) UpdateUserInfo(ctx context.Context, Req *kitex_gen.UpdateUserRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.UpdateUserInfo(ctx, Req)
+}
+
+func (p *kUserServiceClient) UploadImg(ctx context.Context, Req *kitex_gen.UploadImgRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.UploadImg(ctx, Req)
 }

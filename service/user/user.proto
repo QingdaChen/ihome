@@ -47,7 +47,14 @@ message GetUserRequest{
 //更新用户信息请求
 message UpdateUserRequest{
   string sessionId = 1;
-  string updateName =2;
+  string updateName = 2;
+}
+
+//存储头像请求
+message UploadImgRequest{
+  string sessionId = 1;
+  string fileType  = 2; //图像格式类型
+  string imgBase64 = 3;  //图像base64串
 }
 
 //user服务
@@ -64,7 +71,7 @@ service UserService{
   rpc GetUserInfo(GetUserRequest) returns (Response) {} //用户信息获取
   rpc UpdateUserInfo(UpdateUserRequest) returns (Response) {} //用户信息更新
 
-
+  rpc UploadImg(UploadImgRequest) returns (Response) {} //用户头像上传
 
 
 }
