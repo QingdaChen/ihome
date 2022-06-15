@@ -10,6 +10,7 @@ const (
 	UserInfoTimeOut             = 30 * 24 //hour
 	ServerMaxConnections int    = 1000
 	ServerMaxQPS         int    = 100
+	AvatarUrlIndex       string = "avatar_url"
 )
 
 //redis

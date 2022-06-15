@@ -12,6 +12,7 @@ import (
 	"ihome/web/remote"
 	"ihome/web/utils"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 )
@@ -110,11 +111,12 @@ func GetUserInfo(ctx *gin.Context) {
 //UpdateUserInfo 更新用户信息
 func UpdateUserInfo(ctx *gin.Context) {
 	//TODO 限流
-	updateVo := &model.UpdateVo{}
-	ctx.Bind(updateVo)
-	updateName := updateVo.Name
-	utils.NewLog().Info("updateName:", updateName)
 	utils.NewLog().Debug("UpdateUserInfo start...")
+	updateUserMap := make(map[string]string, 5)
+	params, _ := ioutil.ReadAll(ctx.Request.Body)
+	json.Unmarshal(params, &updateUserMap)
+	utils.NewLog().Println("updateUserMap:", updateUserMap)
+
 	sessionId, err := ctx.Cookie(conf.LoginCookieName)
 	if err != nil || sessionId == "" {
 		//sessionId 不存在或者过期直接返回
@@ -122,7 +124,7 @@ func UpdateUserInfo(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SESSIONERR, nil))
 		return
 	}
-	req := user_kitex_gen.UpdateUserRequest{SessionId: sessionId, UpdateName: updateName}
+	req := user_kitex_gen.UpdateUserRequest{SessionId: sessionId, Data: updateUserMap}
 	res, err2 := remote.RPC(ctx, conf.UserServiceIndex, req)
 	if err2 != nil {
 		utils.NewLog().Info("remote.RPC error:", err)

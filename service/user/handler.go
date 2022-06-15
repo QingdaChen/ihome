@@ -123,18 +123,22 @@ func (s *UserServiceImpl) UpdateUserInfo(ctx context.Context, req *kitex_gen.Upd
 	}
 	//defer model.TryRelease()
 	//更新用户信息
-	userInfoResp := handler.UpdateUserInfoByHandler(req.SessionId, "name", req.UpdateName)
+	userInfoResp := handler.UpdateUserInfoByHandler(req.SessionId, req.Data)
 	if utils.RECODE_OK != userInfoResp.Errno {
 		utils.NewLog().Info("UpdateUserInfoByHandler error:", userInfoResp)
 		return &userInfoResp, nil
 	}
-	//在更新session
-	sessionResp := model.UpdateSessionInfo(req.SessionId, req.UpdateName)
-	if utils.RECODE_OK != sessionResp.Errno {
-		//TODO 发送消息错误兜底
-		utils.NewLog().Info("UpdateSessionInfo failed")
+	if req.Data["name"] != "" {
+		//在更新session
+		sessionResp := model.UpdateSessionInfo(req.SessionId, req.Data["name"])
+		if utils.RECODE_OK != sessionResp.Errno {
+			//TODO 发送消息错误兜底
+			utils.NewLog().Info("UpdateSessionInfo failed")
+			return &sessionResp, nil
+		}
 	}
-	return &sessionResp, nil
+	return &userInfoResp, nil
+
 }
 
 // UploadImg implements the UserServiceImpl interface.
@@ -154,27 +158,38 @@ func (s *UserServiceImpl) UploadImg(ctx context.Context, req *kitex_gen.UploadIm
 		return &uploadResp, nil
 	}
 	utils.NewLog().Info("uploadResp:", string(uploadResp.Data))
+	m := make(map[string]string, 1)
+	m[conf.AvatarUrlIndex] = string(uploadResp.Data)
 	//更新缓存
-	//model.UpdateSessionInfo()
-	//查头像原url
-	userResp := handler.GetUserInfoByHandler(req.SessionId)
-	if utils.RECODE_OK != userResp.Errno {
-		//TODO 存数据库记录
-		utils.NewLog().Info("GetUserInfoByHandler error", userResp)
-		return &userResp, nil
-	}
-	//成功就更新数据库和缓存
-	updateResp := handler.UpdateUserInfoByHandler(req.SessionId, "avatar_url", (string)(uploadResp.Data))
+	updateResp := handler.UpdateRedisUserInfo(req.SessionId, m)
 	if utils.RECODE_OK != updateResp.Errno {
 		//TODO 存数据库记录
-		utils.NewLog().Info("UpdateUserInfoByHandler error", updateResp)
+		utils.NewLog().Info("UploadImg error", updateResp)
 		return &updateResp, nil
 	}
+	//直接提交协程启动删除旧的头像
+	handler.DeleteImgByHandler(req.SessionId, m)
+	return &uploadResp, nil
+	//model.UpdateSessionInfo()
+	//查头像原url
+	//userResp := handler.GetUserInfoByHandler(req.SessionId)
+	//if utils.RECODE_OK != userResp.Errno {
+	//	//TODO 存数据库记录
+	//	utils.NewLog().Info("GetUserInfoByHandler error", userResp)
+	//	return &userResp, nil
+	//}
+	////成功就更新数据库和缓存
+	//updateResp := handler.UpdateUserInfoByHandler(req.SessionId, "avatar_url", (string)(uploadResp.Data))
+	//if utils.RECODE_OK != updateResp.Errno {
+	//	//TODO 存数据库记录
+	//	utils.NewLog().Info("UpdateUserInfoByHandler error", updateResp)
+	//	return &updateResp, nil
+	//}
 	//都成功启动协程删除原头像
-	handler.DeleteFileByHandler(userResp.Data)
+	//handler.DeleteFileByHandler(userResp.Data)
 	//拼接头像地址
 	//fileName := fmt.Sprintf("%s/%s", conf.NginxUrl, (string)(uploadResp.Data))
 	//utils.NewLog().Debug("fileName :", fileName)
 	//uploadResp.Data = []byte(fileName)
-	return &uploadResp, nil
+	//return &uploadResp, nil
 }

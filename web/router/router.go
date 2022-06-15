@@ -38,6 +38,8 @@ func InitRouters() *gin.Engine {
 		v1.PUT("/user/name", controller.UpdateUserInfo)
 		v1.DELETE("/session", controller.DeleteSession)
 		v1.POST("/user/avatar", controller.PostAvatar)
+		v1.GET("/user/auth", controller.GetUserInfo)
+		v1.POST("/user/auth", controller.UpdateUserInfo)
 
 	}
 	//router.Use(SessionAuthorize(router))

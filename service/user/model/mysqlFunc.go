@@ -79,13 +79,13 @@ func GetUserInfo(sessionId string) kitex_gen.Response {
 	return utils.UserResponse(utils.RECODE_OK, data)
 }
 
-func UpdateUserInfo(sessionId string, info string, updateName string) kitex_gen.Response {
+func UpdateUserInfo(sessionId string, m map[string]string) kitex_gen.Response {
 	utils.NewLog().Info("UpdateUserInfo MysqlConn:", MysqlConn.DB().Ping())
 	//更新用户信息
 	user := &User{}
 	phone, _ := utils.AesEcpt.AesBase64Decrypt(sessionId)
-	utils.NewLog().Info("phone name:", phone, updateName)
-	err := MysqlConn.Debug().Model(user).Where("mobile = ?", phone).Update(info, updateName).Error
+	utils.NewLog().Info("info-value:", m)
+	err := MysqlConn.Debug().Model(user).Where("mobile = ?", phone).Update(m).Error
 	utils.NewLog().Info("MysqlConn.Where:", err)
 	if err != nil {
 		utils.NewLog().Error("update mysql fail:", err)

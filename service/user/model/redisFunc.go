@@ -93,7 +93,7 @@ func CheckSMSCode(phone, smsCode string) kitex_gen.Response {
 func SaveRedisSession(data []byte) kitex_gen.Response {
 	conn := Client.Conn(ctx)
 	defer conn.Close()
-	user := User{}
+	user := UserPo{}
 	err := json.Unmarshal(data, &user)
 	if err != nil {
 		utils.NewLog().Error("json.Unmarshal error:", err)
@@ -147,7 +147,7 @@ func GetSessionInfo(sessionId string) kitex_gen.Response {
 		utils.NewLog().Info("GetSessionInfo nil:", err)
 		return utils.UserResponse(utils.RECODE_SESSIONERR, nil)
 	}
-	user := &User{}
+	user := &UserPo{}
 	user.Name = result
 	data, _ := json.Marshal(user)
 	return utils.UserResponse(utils.RECODE_OK, data)

@@ -47,7 +47,7 @@ message GetUserRequest{
 //更新用户信息请求
 message UpdateUserRequest{
   string sessionId = 1;
-  string updateName = 2;
+  map<string,string> data = 2;
 }
 
 //存储头像请求
