@@ -61,7 +61,7 @@ const (
 
 // LoginHtmlLocation file location
 const (
-	LoginHtmlLocation string = "/home/login.html"
+	LoginHtmlLocation string = "http://192.168.31.219:8088/home/login.html"
 )
 
 //nginx

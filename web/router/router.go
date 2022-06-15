@@ -28,7 +28,7 @@ func InitRouters() *gin.Engine {
 		v1.GET("/smscode/:phone", controller.GetSMSCd)
 		v1.POST("/users", controller.Register)
 		v1.GET("/areas", controller.GetAreas) //获取房子地域信息
-
+		v1.GET("/test", controller.Test)
 		v1.POST("/sessions", controller.PostLogin) //登录
 		v1.GET("/session", controller.GetSession)  //获取用户信息
 

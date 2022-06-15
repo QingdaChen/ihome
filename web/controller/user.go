@@ -180,6 +180,9 @@ func PostAvatar(ctx *gin.Context) {
 }
 
 func Test(ctx *gin.Context) {
+	utils.NewLog().Info("test start....")
 	ctx.Redirect(http.StatusTemporaryRedirect, "http://192.168.31.219:8088/home/login.html")
+	//utils.NewLog().Info("test start....")
+	//ctx.HTML(http.StatusTemporaryRedirect, conf.LoginHtmlLocation, utils.Response(utils.RECODE_OK, nil))
 	return
 }

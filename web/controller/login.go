@@ -101,10 +101,8 @@ func SessionAuth(router *gin.Engine) gin.HandlerFunc {
 		if err != nil || sessionId == "" {
 			//cookie未存在或过期直接返回
 			utils.NewLog().Info("cookie未存在或过期直接返回:")
-			//ctx.Redirect(http.StatusTemporaryRedirect, conf.LoginHtmlLocation)
-			ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SESSIONERR, nil))
 			ctx.Abort()
-			//r.HandleContext(ctx)
+			ctx.Redirect(http.StatusTemporaryRedirect, conf.LoginHtmlLocation+"/?resp=未登录") //307 临时重定向
 			return
 		}
 
@@ -114,9 +112,8 @@ func SessionAuth(router *gin.Engine) gin.HandlerFunc {
 		utils.NewLog().Info("SessionAuthRequest result:", res, err2)
 		if err2 != nil {
 			utils.NewLog().Error("rpc SessionAuth error:", err2)
-			//ctx.Redirect(http.StatusTemporaryRedirect, conf.LoginHtmlLocation)
-			ctx.JSON(http.StatusOK, res)
 			ctx.Abort()
+			ctx.Redirect(http.StatusTemporaryRedirect, conf.LoginHtmlLocation+"/?resp=未登录") //307 临时重定向
 			return
 		}
 
@@ -125,17 +122,10 @@ func SessionAuth(router *gin.Engine) gin.HandlerFunc {
 		//验证失败
 		if utils.RECODE_OK != response.Errno {
 			utils.NewLog().Info("SessionAuth fail:", err2, response)
-
-			//utils.NewLog().Info("redirect...")
-
-			//ctx.Redirect(http.StatusTemporaryRedirect, "/api/v1.0/test")
-
-			//ctx.Request.RequestURI = "http://192.168.31.219:8088/home/login.html"
-
-			//ctx.JSON(http.StatusTemporaryRedirect, res)
-			//utils.NewLog().Infof("cctx...%v", ctx)
-			//router.HandleContext(ctx)
 			ctx.Abort()
+			//ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SESSIONERR, nil))
+			//重定向到login.html
+			ctx.Redirect(http.StatusTemporaryRedirect, conf.LoginHtmlLocation+"/?resp=未登录") //307 临时重定向
 
 			return
 		}
