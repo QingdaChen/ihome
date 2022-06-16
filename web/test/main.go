@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	redis2 "github.com/go-redis/redis/v8"
 	"github.com/tedcy/fdfs_client"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"ihome/web/conf"
 	"ihome/web/utils"
 	"strconv"
@@ -51,6 +54,11 @@ func testSession() {
 
 }
 
+type HouseFacilities struct {
+	HouseId    int `json:"house_id"`
+	FacilityId int `json:"facility_id"`
+}
+
 func main() {
 
 	//TestRedis2()
@@ -59,7 +67,12 @@ func main() {
 	//testEncryption()
 	//testCache()
 	//testRedis2()
-	testFastDfs()
+	//testFastDfs()
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/search_house?charset=utf8&parseTime=True&loc=Local",
+		conf.MysqlUser, conf.MysqlPasswd, conf.MysqlIp, conf.MysqlPort)
+	db, _ := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+
+	db.CreateInBatches(&[]HouseFacilities{{1, 2}, {1, 3}}, 2)
 
 }
 

@@ -32,18 +32,19 @@ func InitRouters() *gin.Engine {
 		v1.POST("/sessions", controller.PostLogin) //登录
 		v1.GET("/session", controller.GetSession)  //获取用户信息
 
+		v1.Use(controller.SessionAuth)
 		//下面的方法都得sessionAuth
-		v1.Use(controller.SessionAuth(router))
 		v1.GET("/user", controller.GetUserInfo) //获取用户信息
 		v1.PUT("/user/name", controller.UpdateUserInfo)
 		v1.DELETE("/session", controller.DeleteSession)
 		v1.POST("/user/avatar", controller.PostAvatar)
 		v1.GET("/user/auth", controller.GetUserInfo)
 		v1.POST("/user/auth", controller.UpdateUserInfo)
+		//house
+		v1.GET("/user/houses", controller.GetHousesInfo)
+		v1.POST("/houses", controller.PubHouses)
 
 	}
-	//router.Use(SessionAuthorize(router))
-	//以下方法均使用session鉴权
 
 	return router
 }

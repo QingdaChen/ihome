@@ -22,7 +22,8 @@ func NewServiceInfo() *kitex.ServiceInfo {
 	serviceName := "HouseService"
 	handlerType := (*kitex_gen.HouseService)(nil)
 	methods := map[string]kitex.MethodInfo{
-		"GetArea": kitex.NewMethodInfo(getAreaHandler, newGetAreaArgs, newGetAreaResult, false),
+		"GetArea":  kitex.NewMethodInfo(getAreaHandler, newGetAreaArgs, newGetAreaResult, false),
+		"PubHouse": kitex.NewMethodInfo(pubHouseHandler, newPubHouseArgs, newPubHouseResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "house",
@@ -141,6 +142,109 @@ func (p *GetAreaResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
+func pubHouseHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(kitex_gen.PubHouseRequest)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(kitex_gen.HouseService).PubHouse(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := st.SendMsg(resp); err != nil {
+			return err
+		}
+	case *PubHouseArgs:
+		success, err := handler.(kitex_gen.HouseService).PubHouse(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*PubHouseResult)
+		realResult.Success = success
+	}
+	return nil
+}
+func newPubHouseArgs() interface{} {
+	return &PubHouseArgs{}
+}
+
+func newPubHouseResult() interface{} {
+	return &PubHouseResult{}
+}
+
+type PubHouseArgs struct {
+	Req *kitex_gen.PubHouseRequest
+}
+
+func (p *PubHouseArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, fmt.Errorf("No req in PubHouseArgs")
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *PubHouseArgs) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.PubHouseRequest)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var PubHouseArgs_Req_DEFAULT *kitex_gen.PubHouseRequest
+
+func (p *PubHouseArgs) GetReq() *kitex_gen.PubHouseRequest {
+	if !p.IsSetReq() {
+		return PubHouseArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *PubHouseArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+type PubHouseResult struct {
+	Success *kitex_gen.Response
+}
+
+var PubHouseResult_Success_DEFAULT *kitex_gen.Response
+
+func (p *PubHouseResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, fmt.Errorf("No req in PubHouseResult")
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *PubHouseResult) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.Response)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *PubHouseResult) GetSuccess() *kitex_gen.Response {
+	if !p.IsSetSuccess() {
+		return PubHouseResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *PubHouseResult) SetSuccess(x interface{}) {
+	p.Success = x.(*kitex_gen.Response)
+}
+
+func (p *PubHouseResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -156,6 +260,16 @@ func (p *kClient) GetArea(ctx context.Context, Req *kitex_gen.AreaRequest) (r *k
 	_args.Req = Req
 	var _result GetAreaResult
 	if err = p.c.Call(ctx, "GetArea", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) PubHouse(ctx context.Context, Req *kitex_gen.PubHouseRequest) (r *kitex_gen.Response, err error) {
+	var _args PubHouseArgs
+	_args.Req = Req
+	var _result PubHouseResult
+	if err = p.c.Call(ctx, "PubHouse", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

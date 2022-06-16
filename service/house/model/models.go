@@ -2,10 +2,14 @@ package model
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
 	"ihome/service/house/conf"
 	"ihome/service/utils"
+	"log"
+	"os"
 	"time"
 )
 
@@ -24,25 +28,25 @@ type User struct {
 
 /* 房屋信息 table_name = house */
 type House struct {
-	gorm.Model                    //房屋编号
-	UserId          uint          //房屋主人的用户编号  与用户进行关联
-	AreaId          uint          //归属地的区域编号   和地区表进行关联
-	Title           string        `gorm:"size:64" `                 //房屋标题
-	Address         string        `gorm:"size:512"`                 //地址
-	Room_count      int           `gorm:"default:1" `               //房间数目
-	Acreage         int           `gorm:"default:0" json:"acreage"` //房屋总面积
-	Price           int           `json:"price"`
-	Unit            string        `gorm:"size:32;default:''" json:"unit"`               //房屋单元,如 几室几厅
-	Capacity        int           `gorm:"default:1" json:"capacity"`                    //房屋容纳的总人数
-	Beds            string        `gorm:"size:64;default:''" json:"beds"`               //房屋床铺的配置
-	Deposit         int           `gorm:"default:0" json:"deposit"`                     //押金
-	Min_days        int           `gorm:"default:1" json:"min_days"`                    //最少入住的天数
-	Max_days        int           `gorm:"default:0" json:"max_days"`                    //最多入住的天数 0表示不限制
-	Order_count     int           `gorm:"default:0" json:"order_count"`                 //预定完成的该房屋的订单数
-	Index_image_url string        `gorm:"size:256;default:''" json:"index_image_url"`   //房屋主图片路径
-	Facilities      []*Facility   `gorm:"many2many:house_facilities" json:"facilities"` //房屋设施   与设施表进行关联
-	Images          []*HouseImage `json:"img_urls"`                                     //房屋的图片   除主要图片之外的其他图片地址
-	Orders          []*OrderHouse `json:"orders"`                                       //房屋的订单    与房屋表进行管理
+	gorm.Model             //房屋编号
+	UserId          uint   //房屋主人的用户编号  与用户进行关联
+	AreaId          uint   `map:"areaId"`                                  //归属地的区域编号   和地区表进行关联
+	Title           string `gorm:"size:64" map:"title"`                    //房屋标题
+	Address         string `gorm:"size:512" map:"address"`                 //地址
+	Room_count      int    `gorm:"default:1" map:"room_count"`             //房间数目
+	Acreage         int    `gorm:"default:0" json:"acreage" map:"acreage"` //房屋总面积
+	Price           int    `json:"price" map:"price"`
+	Unit            string `gorm:"size:32;default:''" json:"unit" map:"unit"`                        //房屋单元,如 几室几厅
+	Capacity        int    `gorm:"default:1" json:"capacity" map:"capacity"`                         //房屋容纳的总人数
+	Beds            string `gorm:"size:64;default:''" json:"beds" map:"beds"`                        //房屋床铺的配置
+	Deposit         int    `gorm:"default:0" json:"deposit" map:"deposit"`                           //押金
+	Min_days        int    `gorm:"default:1" json:"min_days" map:"min_days"`                         //最少入住的天数
+	Max_days        int    `gorm:"default:0" json:"max_days" map:"max_days"`                         //最多入住的天数 0表示不限制
+	Order_count     int    `gorm:"default:0" json:"order_count" map:"order_count"`                   //预定完成的该房屋的订单数
+	Index_image_url string `gorm:"size:256;default:''" json:"index_image_url" map:"index_image_url"` //房屋主图片路径
+	//Facilities      []*Facility   `gorm:"many2many:house_facilities" json:"facilities"`                     //房屋设施   与设施表进行关联
+	Images []*HouseImage `json:"img_urls"` //房屋的图片   除主要图片之外的其他图片地址
+	Orders []*OrderHouse `json:"orders"`   //房屋的订单    与房屋表进行管理
 }
 
 /* 区域信息 table_name = area */ //区域信息是需要我们手动添加到数据库中的
@@ -57,6 +61,11 @@ type Facility struct {
 	Id     int      `json:"fid"`     //设施编号
 	Name   string   `gorm:"size:32"` //设施名字
 	Houses []*House //都有哪些房屋有此设施  与房屋表进行关联的
+}
+
+type HouseFacilities struct {
+	HouseId    int `json:"house_id"`
+	FacilityId int `json:"facility_id"`
 }
 
 /* 房屋图片 table_name = "house_image"*/
@@ -85,17 +94,33 @@ var MysqlConn *gorm.DB
 
 func init() {
 	//sql.Open()
-	str := fmt.Sprintf("%s:%s@tcp(%s:%d)/search_house?charset=utf8&parseTime=True&loc=Local",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/search_house?charset=utf8&parseTime=True&loc=Local",
 		conf.MysqlUser, conf.MysqlPasswd, conf.MysqlIp, conf.MysqlPort)
-	utils.NewLog().Info(str)
-	db, err := gorm.Open("mysql", str)
+	utils.NewLog().Debug(dsn)
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer（日志输出的目标，前缀和日志包含的内容——译者注）
+		logger.Config{
+			SlowThreshold:             time.Second, // 慢 SQL 阈值
+			LogLevel:                  logger.Info, // 日志级别
+			IgnoreRecordNotFoundError: true,        // 忽略ErrRecordNotFound（记录未找到）错误
+			Colorful:                  false,       // 禁用彩色打印
+		},
+	)
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{
+			SingularTable: true, // use singular table name, table for `User` would be `user`
+		},
+		Logger: newLogger,
+	})
 	if err != nil {
 		utils.NewLog().Error("mysql connect error...", err)
 	}
+	//db.SetLogger(log.New(os.Stdout, "\r\n", 0))
 	MysqlConn = db
-	MysqlConn.DB().SetMaxIdleConns(10)
-	MysqlConn.DB().SetConnMaxLifetime(100)
-	MysqlConn.SingularTable(true)
-	MysqlConn.AutoMigrate(new(User), new(House), new(Area), new(Facility), new(HouseImage), new(OrderHouse))
+	sqlDB, _ := MysqlConn.DB()
+	//设置数据库连接池参数
+	sqlDB.SetMaxOpenConns(100) //设置数据库连接池最大连接数
+	sqlDB.SetMaxIdleConns(20)  //连接池最大允许的空闲连接数，如果没有sql任务需要执行的连接数大于20，超过的连接会被连接池关闭。
+	//MysqlConn.AutoMigrate(new(User), new(House), new(Area), new(Facility), new(HouseImage), new(OrderHouse))
 
 }

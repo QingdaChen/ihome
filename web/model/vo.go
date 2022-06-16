@@ -29,3 +29,7 @@ type UpdateVo struct {
 	Name string `json:"name"` //用户名
 
 }
+
+type HouseVO struct {
+	Houses []House `json:"houses" map:"id"`
+}

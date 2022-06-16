@@ -9,7 +9,7 @@ import (
 func Register(phone, password string) kitex_gen.Response {
 	//查询数据库判断用户是否已经注册
 	user := &User{}
-	utils.NewLog().Info("MysqlConn:", MysqlConn.DB().Ping())
+	utils.NewLog().Info("MysqlConn:", MysqlConn)
 	err := MysqlConn.Where("name = ?", phone).First(&user).Error
 	utils.NewLog().Info("MysqlConn.Where:", err)
 
@@ -34,7 +34,7 @@ func Register(phone, password string) kitex_gen.Response {
 
 func Login(phone, password string) kitex_gen.Response {
 	user := User{}
-	utils.NewLog().Info("Login MysqlConn:", MysqlConn.DB().Ping())
+	utils.NewLog().Info("Login MysqlConn:", MysqlConn)
 	//查询用户是否存在
 	res := MysqlConn.Where("name = ?", phone).Or("mobile = ?", phone).First(&user)
 	utils.NewLog().Info("MysqlConn.Where:", res.Error)
@@ -61,7 +61,7 @@ func Login(phone, password string) kitex_gen.Response {
 //GetUserInfo 获取用户信息 sessionId->phone
 func GetUserInfo(sessionId string) kitex_gen.Response {
 	user := User{}
-	utils.NewLog().Info("GetUserInfo MysqlConn:", MysqlConn.DB().Ping())
+	utils.NewLog().Info("GetUserInfo MysqlConn:", MysqlConn)
 	//查询用户信息
 	phone, _ := utils.AesEcpt.AesBase64Decrypt(sessionId)
 	res := MysqlConn.Where("mobile = ?", phone).First(&user)
@@ -80,12 +80,12 @@ func GetUserInfo(sessionId string) kitex_gen.Response {
 }
 
 func UpdateUserInfo(sessionId string, m map[string]string) kitex_gen.Response {
-	utils.NewLog().Info("UpdateUserInfo MysqlConn:", MysqlConn.DB().Ping())
+	utils.NewLog().Info("UpdateUserInfo MysqlConn:", MysqlConn)
 	//更新用户信息
 	user := &User{}
 	phone, _ := utils.AesEcpt.AesBase64Decrypt(sessionId)
 	utils.NewLog().Info("info-value:", m)
-	err := MysqlConn.Debug().Model(user).Where("mobile = ?", phone).Update(m).Error
+	err := MysqlConn.Debug().Model(user).Where("mobile = ?", phone).Updates(m).Error
 	utils.NewLog().Info("MysqlConn.Where:", err)
 	if err != nil {
 		utils.NewLog().Error("update mysql fail:", err)

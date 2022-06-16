@@ -12,6 +12,7 @@ import (
 // Client is designed to provide IDL-compatible methods with call-option parameter for kitex framework.
 type Client interface {
 	GetArea(ctx context.Context, Req *kitex_gen.AreaRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
+	PubHouse(ctx context.Context, Req *kitex_gen.PubHouseRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -46,4 +47,9 @@ type kHouseServiceClient struct {
 func (p *kHouseServiceClient) GetArea(ctx context.Context, Req *kitex_gen.AreaRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.GetArea(ctx, Req)
+}
+
+func (p *kHouseServiceClient) PubHouse(ctx context.Context, Req *kitex_gen.PubHouseRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.PubHouse(ctx, Req)
 }

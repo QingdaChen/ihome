@@ -13,6 +13,14 @@ const (
 	AvatarUrlIndex       string = "avatar_url"
 )
 
+//mysql
+const (
+	MysqlUser   string = "root"
+	MysqlPasswd string = "220108"
+	MysqlIp     string = "192.168.31.219"
+	MysqlPort   int    = 3306
+)
+
 //redis
 const (
 	RedisIp          string = "192.168.31.219"

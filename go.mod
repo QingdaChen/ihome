@@ -14,7 +14,7 @@ require (
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/go-sql-driver/mysql v1.5.0
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/jinzhu/gorm v1.9.16
 	github.com/kitex-contrib/tracer-opentracing v0.0.3
@@ -23,6 +23,8 @@ require (
 	github.com/tedcy/fdfs_client v0.0.0-20200106031142-21a04994525a
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 	google.golang.org/protobuf v1.28.0
+	gorm.io/driver/mysql v1.3.4
+	gorm.io/gorm v1.23.6
 )
 
 require (
@@ -47,6 +49,7 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.4 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect

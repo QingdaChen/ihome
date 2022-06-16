@@ -94,42 +94,40 @@ func PostLogin(ctx *gin.Context) {
 }
 
 //SessionAuth session鉴权
-func SessionAuth(router *gin.Engine) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		sessionId, err := ctx.Cookie(conf.LoginCookieName) // 获得cookie seesionId
-		utils.NewLog().Info("sessionId:", sessionId)
-		if err != nil || sessionId == "" {
-			//cookie未存在或过期直接返回
-			utils.NewLog().Info("cookie未存在或过期直接返回:")
-			ctx.Abort()
-			ctx.Redirect(http.StatusTemporaryRedirect, conf.LoginHtmlLocation+"/?resp=未登录") //307 临时重定向
-			return
-		}
-
-		//连接user服务 查询session
-		req := user_kitex_gen.SessionAuthRequest{SessionId: sessionId}
-		res, err2 := remote.RPC(ctx, conf.UserServiceIndex, req)
-		utils.NewLog().Info("SessionAuthRequest result:", res, err2)
-		if err2 != nil {
-			utils.NewLog().Error("rpc SessionAuth error:", err2)
-			ctx.Abort()
-			ctx.Redirect(http.StatusTemporaryRedirect, conf.LoginHtmlLocation+"/?resp=未登录") //307 临时重定向
-			return
-		}
-
-		response := res.(*user_kitex_gen.Response)
-		utils.NewLog().Info("rpc response:", response)
-		//验证失败
-		if utils.RECODE_OK != response.Errno {
-			utils.NewLog().Info("SessionAuth fail:", err2, response)
-			ctx.Abort()
-			//ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SESSIONERR, nil))
-			//重定向到login.html
-			ctx.Redirect(http.StatusTemporaryRedirect, conf.LoginHtmlLocation+"/?resp=未登录") //307 临时重定向
-
-			return
-		}
-		ctx.Next()
+func SessionAuth(ctx *gin.Context) {
+	sessionId, err := ctx.Cookie(conf.LoginCookieName) // 获得cookie seesionId
+	utils.NewLog().Info("sessionId:", sessionId)
+	if err != nil || sessionId == "" {
+		//cookie未存在或过期直接返回
+		utils.NewLog().Info("cookie未存在或过期直接返回:")
+		ctx.Abort()
+		ctx.Redirect(http.StatusTemporaryRedirect, conf.LoginHtmlLocation+"/?resp=未登录") //307 临时重定向
 		return
 	}
+
+	//连接user服务 查询session
+	req := user_kitex_gen.SessionAuthRequest{SessionId: sessionId}
+	res, err2 := remote.RPC(ctx, conf.UserServiceIndex, req)
+	utils.NewLog().Info("SessionAuthRequest result:", res, err2)
+	if err2 != nil {
+		utils.NewLog().Error("rpc SessionAuth error:", err2)
+		ctx.Abort()
+		ctx.Redirect(http.StatusTemporaryRedirect, conf.LoginHtmlLocation+"/?resp=未登录") //307 临时重定向
+		return
+	}
+
+	response := res.(*user_kitex_gen.Response)
+	utils.NewLog().Info("rpc response:", response)
+	//验证失败
+	if utils.RECODE_OK != response.Errno {
+		utils.NewLog().Info("SessionAuth fail:", err2, response)
+		ctx.Abort()
+		//ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SESSIONERR, nil))
+		//重定向到login.html
+		ctx.Redirect(http.StatusTemporaryRedirect, conf.LoginHtmlLocation+"/?resp=未登录") //307 临时重定向
+
+		return
+	}
+	ctx.Next()
+	return
 }

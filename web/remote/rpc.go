@@ -53,6 +53,9 @@ func handlerHouseService(ctx *gin.Context, result interface{}, req interface{}) 
 	case house_kitex_gen.AreaRequest:
 		request := req.(house_kitex_gen.AreaRequest)
 		response, err = service.GetArea(ctx, &request)
+	case house_kitex_gen.PubHouseRequest:
+		request := req.(house_kitex_gen.PubHouseRequest)
+		response, err = service.PubHouse(ctx, &request)
 	default:
 		err = errors.New("handlerHouseService error")
 	}
