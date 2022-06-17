@@ -18,6 +18,7 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/jinzhu/gorm v1.9.16
 	github.com/kitex-contrib/tracer-opentracing v0.0.3
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/panjf2000/ants/v2 v2.5.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/tedcy/fdfs_client v0.0.0-20200106031142-21a04994525a

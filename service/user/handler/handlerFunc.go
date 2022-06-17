@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	po "ihome/service/model"
 	"ihome/service/user/kitex_gen"
 	"ihome/service/user/model"
 	"ihome/service/utils"
@@ -48,7 +49,7 @@ func DeleteImgByHandler(sessionId string, m map[string]string) {
 			utils.NewLog().Info("mysql GetUserInfo failed:", mysqlResp)
 			return
 		}
-		user := &model.UserPo{}
+		user := &po.UserPo{}
 		json.Unmarshal(mysqlResp.Data, user)
 		if user.Avatar_url != "" {
 			//已经上传过头像了,就启动协程删除
@@ -103,7 +104,7 @@ func UpdateRedisUserInfo(sessionId string, m map[string]string) kitex_gen.Respon
 		utils.NewLog().Info("json.Marshal error:", getResp)
 		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
 	}
-	user := &model.UserPo{}
+	user := &po.UserPo{}
 	json.Unmarshal(getResp.Data, user)
 	json.Unmarshal(userByte, user)
 	utils.NewLog().Debug("user:", user)

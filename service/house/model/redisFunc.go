@@ -48,3 +48,18 @@ func SaveRedis(key string, data []byte, expire time.Duration) kitex_gen.Response
 	}
 	return utils.HouseResponse(utils.RECODE_OK, nil)
 }
+
+//DeleteKey 根据key 删除redis缓存
+func DeleteKey(key string) kitex_gen.Response {
+	conn := Client.Conn(ctx)
+	defer conn.Close()
+	utils.NewLog().Info("DeleteKeyById:", key)
+	_, err := conn.Del(ctx, key).Result()
+	//utils.NewLog().Info("GetSessionInfo result:", result)
+	if err != nil {
+		utils.NewLog().Error("conn.Get error:", err)
+		return utils.HouseResponse(utils.RECODE_SERVERERR, nil)
+	}
+
+	return utils.HouseResponse(utils.RECODE_OK, nil)
+}

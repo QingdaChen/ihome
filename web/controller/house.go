@@ -59,17 +59,46 @@ func GetAreas(ctx *gin.Context) {
 }
 
 //GetHousesInfo 获取房子信息
-func GetHousesInfo(ctx *gin.Context) {
-	houses := model.HouseVO{Houses: []model.House{}}
-	ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_OK, houses))
+func GetUserHouses(ctx *gin.Context) {
+	utils.NewLog().Debug("PubHouses start")
+	//获得cookie
+	sessionId, err := ctx.Cookie(conf.LoginCookieName)
+	if err != nil || sessionId == "" {
+		//sessionId 不存在或者过期直接返回
+		utils.NewLog().Info("ctx.Cookie error:", err)
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SESSIONERR, nil))
+		return
+	}
+	req := house_kitex_gen.GetUserHouseRequest{SessionId: sessionId}
+	res, err2 := remote.RPC(ctx, conf.HouseServiceIndex, req)
+	if err2 != nil {
+		utils.NewLog().Info("remote.RPC error:", err2)
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SERVERERR, nil))
+		return
+	}
+	response := res.(*house_kitex_gen.Response)
+	resp := make(map[string][]model.UserHouseVo)
+	userHouses := make([]model.UserHouseVo, 0)
+	json.Unmarshal(response.Data, &userHouses)
+	resp["houses"] = userHouses
+	ctx.JSON(http.StatusOK, utils.Response(response.Errno, resp))
+	return
 }
 
 //PubHouses Post 发布房子信息
 func PubHouses(ctx *gin.Context) {
 	utils.NewLog().Info("PubHouses start")
+	//获得cookie
+	sessionId, err := ctx.Cookie(conf.LoginCookieName)
+	if err != nil || sessionId == "" {
+		//sessionId 不存在或者过期直接返回
+		utils.NewLog().Info("ctx.Cookie error:", err)
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SESSIONERR, nil))
+		return
+	}
 	params, _ := ioutil.ReadAll(ctx.Request.Body)
-	utils.NewLog().Debug("params:", params)
-	req := house_kitex_gen.PubHouseRequest{Params: params}
+	//	utils.NewLog().Debug("params:", params)
+	req := house_kitex_gen.PubHouseRequest{SessionId: sessionId, Params: params}
 	res, err2 := remote.RPC(ctx, conf.HouseServiceIndex, req)
 	if err2 != nil {
 		utils.NewLog().Info("remote.RPC error:", err2)

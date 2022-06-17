@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	redis2 "github.com/go-redis/redis/v8"
+	"ihome/service/model"
 	"ihome/service/user/conf"
 	"ihome/service/user/kitex_gen"
 	"ihome/service/utils"
@@ -93,19 +94,19 @@ func CheckSMSCode(phone, smsCode string) kitex_gen.Response {
 func SaveRedisSession(data []byte) kitex_gen.Response {
 	conn := Client.Conn(ctx)
 	defer conn.Close()
-	user := UserPo{}
-	err := json.Unmarshal(data, &user)
+	session := model.SessionPo{}
+	err := json.Unmarshal(data, &session)
 	if err != nil {
 		utils.NewLog().Error("json.Unmarshal error:", err)
 		return utils.UserResponse(utils.RECODE_SERVERERR, nil)
 	}
-	utils.NewLog().Info("user.Id:", user.Mobile)
+	utils.NewLog().Info("user.Mobile:", session.Mobile)
 	//将用户Id加密
 	//utils.NewLog().Info("encrypt ", encrypt)
-	phoneHash, _ := utils.AesEcpt.AesBase64Encrypt(user.Mobile)
-
-	//直接存入用户名...
-	_, err = conn.SetEX(ctx, conf.SessionLoginIndex+"_"+phoneHash, []byte(user.Name),
+	phoneHash, _ := utils.AesEcpt.AesBase64Encrypt(session.Mobile)
+	sessionData, _ := json.Marshal(&session)
+	//直接存入用户信息
+	_, err = conn.SetEX(ctx, conf.SessionLoginIndex+"_"+phoneHash, sessionData,
 		conf.SessionLoginTimeOut*time.Hour).Result()
 	utils.NewLog().Info("save err:", err)
 	if err != nil {
@@ -147,18 +148,24 @@ func GetSessionInfo(sessionId string) kitex_gen.Response {
 		utils.NewLog().Info("GetSessionInfo nil:", err)
 		return utils.UserResponse(utils.RECODE_SESSIONERR, nil)
 	}
-	user := &UserPo{}
-	user.Name = result
-	data, _ := json.Marshal(user)
-	return utils.UserResponse(utils.RECODE_OK, data)
+	//user := &UserPo{}
+	//user.Name = result
+	//data, _ := json.Marshal(user)
+	return utils.UserResponse(utils.RECODE_OK, []byte(result))
 }
 
 //updateSessionInfo 更新session信息
 func UpdateSessionInfo(sessionId string, updateName string) kitex_gen.Response {
 	conn := Client.Conn(ctx)
 	defer conn.Close()
+	result, err := conn.Get(ctx, conf.SessionLoginIndex+"_"+sessionId).Result()
+	session := model.SessionPo{}
+	json.Unmarshal([]byte(result), &session)
+	utils.NewLog().Debug("session:", session)
+	session.Name = updateName
+	data, _ := json.Marshal(&session)
 	//直接存入用户名...
-	_, err := conn.SetEX(ctx, conf.SessionLoginIndex+"_"+sessionId, []byte(updateName),
+	_, err = conn.SetEX(ctx, conf.SessionLoginIndex+"_"+sessionId, data,
 		conf.SessionLoginTimeOut*time.Hour).Result()
 	utils.NewLog().Info("UpdateSessionInfo:", err)
 	if err != nil {
@@ -169,7 +176,7 @@ func UpdateSessionInfo(sessionId string, updateName string) kitex_gen.Response {
 	return utils.UserResponse(utils.RECODE_OK, nil)
 }
 
-//DeleteKey 根据sessionId删除session信息
+//DeleteKey
 func DeleteKey(key string) kitex_gen.Response {
 	conn := Client.Conn(ctx)
 	defer conn.Close()

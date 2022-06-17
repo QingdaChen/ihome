@@ -1,23 +1,16 @@
 package remote
 
 import (
-	"encoding/json"
+	"context"
 	"errors"
-	"github.com/afocus/captcha"
-	"github.com/gin-gonic/gin"
-	captcha_kitex_gen "ihome/service/captcha/kitex_gen"
-	"ihome/service/captcha/kitex_gen/captchaservice"
-	house_kitex_gen "ihome/service/house/kitex_gen"
-	"ihome/service/house/kitex_gen/houseservice"
 	user_kitex_gen "ihome/service/user/kitex_gen"
 	"ihome/service/user/kitex_gen/userservice"
 	"ihome/web/conf"
 	"ihome/web/utils"
-	"image/png"
 )
 
-func RPC(ctx *gin.Context, serviceName string, req interface{}) (interface{}, error) {
-	result := GetService(ctx, serviceName)
+func RPC(ctx context.Context, serviceName string, req interface{}) (interface{}, error) {
+	result := GetService(serviceName)
 	utils.NewLog().Info("GetService:", result)
 	if result == nil {
 		return nil, errors.New("utils.GetService error")
@@ -25,13 +18,13 @@ func RPC(ctx *gin.Context, serviceName string, req interface{}) (interface{}, er
 	var response interface{}
 	var err error
 	switch serviceName {
-	case conf.CaptchaServiceIndex:
-		response, err = handlerCaptchaService(ctx, result, req)
+	//case conf.CaptchaServiceIndex:
+	//	response, err = handlerCaptchaService(ctx, result, req)
 	case conf.UserServiceIndex:
 		utils.NewLog().Info("UserServiceIndex..")
 		response, err = handlerUserService(ctx, result, req)
-	case conf.HouseServiceIndex:
-		response, err = handlerHouseService(ctx, result, req)
+	//case conf.HouseServiceIndex:
+	//	response, err = handlerHouseService(ctx, result, req)
 	default:
 		//ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SERVERERR, nil))
 		return utils.Response(utils.RECODE_SERVERERR, nil), errors.New("service rpc error")
@@ -45,27 +38,7 @@ func RPC(ctx *gin.Context, serviceName string, req interface{}) (interface{}, er
 	return response, nil
 }
 
-func handlerHouseService(ctx *gin.Context, result interface{}, req interface{}) (interface{}, error) {
-	service := result.(houseservice.Client)
-	var response interface{}
-	var err error
-	switch req.(type) {
-	case house_kitex_gen.AreaRequest:
-		request := req.(house_kitex_gen.AreaRequest)
-		response, err = service.GetArea(ctx, &request)
-	case house_kitex_gen.PubHouseRequest:
-		request := req.(house_kitex_gen.PubHouseRequest)
-		response, err = service.PubHouse(ctx, &request)
-	case house_kitex_gen.GetUserHouseRequest:
-		request := req.(house_kitex_gen.GetUserHouseRequest)
-		response, err = service.GetUserHouse(ctx, &request)
-	default:
-		err = errors.New("handlerHouseService error")
-	}
-	return response, err
-}
-
-func handlerUserService(ctx *gin.Context, result interface{}, req interface{}) (interface{}, error) {
+func handlerUserService(ctx context.Context, result interface{}, req interface{}) (interface{}, error) {
 	service := result.(userservice.Client)
 	utils.NewLog().Info("userService.Client", service)
 	var response interface{}
@@ -109,27 +82,6 @@ func handlerUserService(ctx *gin.Context, result interface{}, req interface{}) (
 		utils.NewLog().Info("handlerUserService default")
 		err = errors.New("handlerUserService error")
 	}
-	return response, err
-
-}
-
-func handlerCaptchaService(ctx *gin.Context, result interface{}, req interface{}) (interface{}, error) {
-	//验证码服务
-	var response interface{}
-	var err error
-	service := result.(captchaservice.Client)
-	request := req.(captcha_kitex_gen.Request)
-	response, err = service.GetCaptcha(ctx, &request)
-	var img captcha.Image
-	//json反序列化
-	err2 := json.Unmarshal(response.(*captcha_kitex_gen.Response).Img, &img)
-	if err2 == nil {
-		utils.NewLog().Error("json.Unmarshal success")
-		//写入验证码图像
-		png.Encode(ctx.Writer, img)
-		return response, nil
-	}
-	err = errors.New("service.GetCaptcha")
 	return response, err
 
 }

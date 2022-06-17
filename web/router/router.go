@@ -41,8 +41,8 @@ func InitRouters() *gin.Engine {
 		v1.GET("/user/auth", controller.GetUserInfo)
 		v1.POST("/user/auth", controller.UpdateUserInfo)
 		//house
-		v1.GET("/user/houses", controller.GetHousesInfo)
-		v1.POST("/houses", controller.PubHouses)
+		v1.GET("/user/houses", controller.GetUserHouses) //获取用户发布的所有房子信息
+		v1.POST("/houses", controller.PubHouses)         //用户发布房子信息
 
 	}
 

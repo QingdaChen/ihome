@@ -29,13 +29,13 @@ type User struct {
 /* 房屋信息 table_name = house */
 type House struct {
 	gorm.Model             //房屋编号
-	UserId          uint   //房屋主人的用户编号  与用户进行关联
-	AreaId          uint   `map:"areaId"`                                  //归属地的区域编号   和地区表进行关联
-	Title           string `gorm:"size:64" map:"title"`                    //房屋标题
-	Address         string `gorm:"size:512" map:"address"`                 //地址
-	Room_count      int    `gorm:"default:1" map:"room_count"`             //房间数目
-	Acreage         int    `gorm:"default:0" json:"acreage" map:"acreage"` //房屋总面积
-	Price           int    `json:"price" map:"price"`
+	UserId          uint   `map:"user_id" json:"user_id"`                        //房屋主人的用户编号  与用户进行关联
+	AreaId          uint   `map:"area_id" json:"area_id"`                        //归属地的区域编号   和地区表进行关联
+	Title           string `gorm:"size:64" json:"title" map:"title"`             //房屋标题
+	Address         string `gorm:"size:512" json:"address" map:"address"`        //地址
+	Room_count      int    `gorm:"default:1" json:"room_count" map:"room_count"` //房间数目
+	Acreage         int    `gorm:"default:0" json:"acreage" map:"acreage"`       //房屋总面积
+	Price           int    `json:"price" json:"price" map:"price"`
 	Unit            string `gorm:"size:32;default:''" json:"unit" map:"unit"`                        //房屋单元,如 几室几厅
 	Capacity        int    `gorm:"default:1" json:"capacity" map:"capacity"`                         //房屋容纳的总人数
 	Beds            string `gorm:"size:64;default:''" json:"beds" map:"beds"`                        //房屋床铺的配置

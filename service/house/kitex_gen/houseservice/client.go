@@ -13,6 +13,7 @@ import (
 type Client interface {
 	GetArea(ctx context.Context, Req *kitex_gen.AreaRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 	PubHouse(ctx context.Context, Req *kitex_gen.PubHouseRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
+	GetUserHouse(ctx context.Context, Req *kitex_gen.GetUserHouseRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -52,4 +53,9 @@ func (p *kHouseServiceClient) GetArea(ctx context.Context, Req *kitex_gen.AreaRe
 func (p *kHouseServiceClient) PubHouse(ctx context.Context, Req *kitex_gen.PubHouseRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.PubHouse(ctx, Req)
+}
+
+func (p *kHouseServiceClient) GetUserHouse(ctx context.Context, Req *kitex_gen.GetUserHouseRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetUserHouse(ctx, Req)
 }

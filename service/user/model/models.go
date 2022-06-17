@@ -16,12 +16,12 @@ import (
 /* 用户 table_name = user */
 type User struct {
 	ID            int           //用户编号
-	Name          string        `gorm:"size:32;unique"`  //用户名
-	Password_hash string        `gorm:"size:128" `       //用户密码加密的
-	Mobile        string        `gorm:"size:11;unique" ` //手机号
-	Real_name     string        `gorm:"size:32" `        //真实姓名  实名认证
-	Id_card       string        `gorm:"size:20" `        //身份证号  实名认证
-	Avatar_url    string        `gorm:"size:256" `       //用户头像路径       通过fastdfs进行图片存储
+	Name          string        `gorm:"size:32;unique" json:"name"` //用户名
+	Password_hash string        `gorm:"size:128" `                  //用户密码加密的
+	Mobile        string        `gorm:"size:11;unique" `            //手机号
+	Real_name     string        `gorm:"size:32" `                   //真实姓名  实名认证
+	Id_card       string        `gorm:"size:20" `                   //身份证号  实名认证
+	Avatar_url    string        `gorm:"size:256" `                  //用户头像路径       通过fastdfs进行图片存储
 	Houses        []*House      //用户发布的房屋信息  一个人多套房
 	Orders        []*OrderHouse //用户下的订单       一个人多次订单
 }

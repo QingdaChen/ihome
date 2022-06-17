@@ -83,9 +83,11 @@ func UpdateUserInfo(sessionId string, m map[string]string) kitex_gen.Response {
 	utils.NewLog().Info("UpdateUserInfo MysqlConn:", MysqlConn)
 	//更新用户信息
 	user := &User{}
+	mapByte, _ := json.Marshal(m)
+	json.Unmarshal(mapByte, user)
 	phone, _ := utils.AesEcpt.AesBase64Decrypt(sessionId)
 	utils.NewLog().Info("info-value:", m)
-	err := MysqlConn.Debug().Model(user).Where("mobile = ?", phone).Updates(m).Error
+	err := MysqlConn.Debug().Model(&User{}).Where("mobile= ?", phone).Updates(user).Error
 	utils.NewLog().Info("MysqlConn.Where:", err)
 	if err != nil {
 		utils.NewLog().Error("update mysql fail:", err)

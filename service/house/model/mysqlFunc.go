@@ -29,16 +29,6 @@ func GetMysql(obj interface{}) kitex_gen.Response {
 
 func SaveMysqlHouseFac(houseFacs []HouseFacilities) kitex_gen.Response {
 	utils.NewLog().Info("HouseFacilities:", houseFacs)
-	//sql := ""
-	//i := 0
-	//for i = 0; i < len(houseFacs)-1; i++ {
-	//	sql = fmt.Sprintf("%s(%d,%d),", sql, houseFacs[i].HouseId, houseFacs[i].FacilityId)
-	//}
-	//sql = fmt.Sprintf("%s(%d,%d)", sql, houseFacs[i].HouseId, houseFacs[i].FacilityId)
-	//
-	//sql = fmt.Sprintf("INSERT INTO house_facilities VALUES %s;", sql)
-	//utils.NewLog().Info("sql: ", sql)
-	//result := MysqlConn.Debug().Exec(sql)
 	result := MysqlConn.Debug().Create(&houseFacs)
 	err := result.Error
 	if err != nil {
@@ -49,13 +39,24 @@ func SaveMysqlHouseFac(houseFacs []HouseFacilities) kitex_gen.Response {
 	return utils.HouseResponse(utils.RECODE_OK, nil)
 }
 
+func GetMysqlHouse(userId int) kitex_gen.Response {
+	houses := make([]House, 0)
+	err := MysqlConn.Debug().Where("user_id", userId).Find(&houses).Error
+	if err != nil {
+		utils.NewLog().Info("Find error:", err)
+		return utils.HouseResponse(utils.RECODE_SERVERERR, nil)
+	}
+	data, _ := json.Marshal(&houses)
+	return utils.HouseResponse(utils.RECODE_OK, data)
+
+}
 func SaveMysqlHouse(houseMap map[string]interface{}) kitex_gen.Response {
+	utils.NewLog().Info("houseMap:", houseMap)
 	house := &House{}
-	mapData, _ := json.Marshal(&houseMap)
-	json.Unmarshal(mapData, house)
+	setHouse(house, houseMap)
 	//houseMap["Facilities"] = ""
 	utils.NewLog().Info("house:", house)
-	result := MysqlConn.Debug().Create(house)
+	result := MysqlConn.Debug().Model(&House{}).Create(house)
 	err := result.Error
 	if err != nil {
 		utils.NewLog().Info("mysql Create:", err)
@@ -63,4 +64,34 @@ func SaveMysqlHouse(houseMap map[string]interface{}) kitex_gen.Response {
 	}
 	id := strconv.Itoa(int(house.ID))
 	return utils.HouseResponse(utils.RECODE_OK, []byte(id))
+}
+
+func setHouse(house *House, m map[string]interface{}) {
+	userId, _ := strconv.ParseInt(m["user_id"].(string), 10, 32)
+	house.UserId = uint(userId)
+	areaId, _ := strconv.ParseInt(m["area_id"].(string), 10, 32)
+	house.AreaId = uint(areaId)
+	house.Title = m["title"].(string)
+	house.Address = m["address"].(string)
+	roomCount, _ := strconv.ParseInt(m["room_count"].(string), 10, 32)
+	house.Room_count = int(roomCount)
+	acreage, _ := strconv.ParseInt(m["acreage"].(string), 10, 32)
+	house.Acreage = int(acreage)
+	price, _ := strconv.ParseInt(m["price"].(string), 10, 32)
+	house.Price = int(price)
+	house.Unit = m["unit"].(string)
+	utils.NewLog().Info("capacity:", m["capacity"])
+	capacity, _ := strconv.ParseInt(m["capacity"].(string), 10, 32)
+	house.Capacity = int(capacity)
+	house.Beds = m["beds"].(string)
+	deposit, _ := strconv.ParseInt(m["deposit"].(string), 10, 32)
+	house.Deposit = int(deposit)
+	minDays, _ := strconv.ParseInt(m["min_days"].(string), 10, 32)
+	house.Min_days = int(minDays)
+	maxDays, _ := strconv.ParseInt(m["max_days"].(string), 10, 32)
+	house.Max_days = int(maxDays)
+	//orderCount, _ := strconv.ParseInt(m["order_count"].(string), 10, 32)
+	//house.Order_count = int(orderCount)
+	//house.Index_image_url = m["index_image_url"].(string)
+	//mapstructure.Decode(m, house)
 }

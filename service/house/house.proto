@@ -6,8 +6,13 @@ message AreaRequest{
 
 }
 
+message GetUserHouseRequest{
+  string sessionId = 1;
+}
+
 message PubHouseRequest{
-  bytes params = 1; //参数json
+  string sessionId = 1; //sessionId
+  bytes params = 2; //参数json
 }
 message Response{
   //返回错误码、信息和数据
@@ -19,4 +24,5 @@ message Response{
 service HouseService{
   rpc GetArea(AreaRequest) returns (Response) {}
   rpc PubHouse(PubHouseRequest) returns (Response) {}
+  rpc GetUserHouse(GetUserHouseRequest) returns (Response) {}
 }

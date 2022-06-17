@@ -3,10 +3,8 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"ihome/service/house/conf"
 	"ihome/service/house/handler"
 	"ihome/service/house/kitex_gen"
-	"ihome/service/house/model"
 	"ihome/service/utils"
 )
 
@@ -15,29 +13,12 @@ type HouseServiceImpl struct{}
 
 // GetArea implements the HouseServiceImpl interface.
 func (s *HouseServiceImpl) GetArea(ctx context.Context, req *kitex_gen.AreaRequest) (resp *kitex_gen.Response, err error) {
-	//先去redis查询缓存信息，查不到再查数据库
-	redisAreas := model.GetRedis(conf.RedisAreasIndex).Data
-	if "" != string(redisAreas) {
-		//redis中存在
-		utils.NewLog().Info("GetRedisAreas", string(redisAreas))
-		response := utils.HouseResponse(utils.RECODE_OK, redisAreas)
-		return &response, nil
+	utils.NewLog().Debug("GetArea start....")
+	areasResp := handler.GetAreas()
+	if utils.RECODE_OK != areasResp.Errno {
+		utils.NewLog().Info("areasResp error:", areasResp)
 	}
-	//redis中不存在就查数据库
-	response := model.GetMysql(&[]model.Area{})
-	areasData := response.Data
-	utils.NewLog().Info("model.GetMysqlAreas response:", response.Errmsg)
-	if utils.RECODE_OK != response.Errno {
-		return &response, nil
-	}
-	//存入redis
-	response = model.SaveRedis(conf.RedisAreasIndex, areasData, conf.RedisAreasTimeOut)
-	utils.NewLog().Info("model.SaveRedisAreas response:", response)
-	if utils.RECODE_OK != response.Errno {
-		return &response, nil
-	}
-	response.Data = areasData
-	return &response, nil
+	return &areasResp, nil
 }
 
 // PubHouse implements the HouseServiceImpl interface.
@@ -50,10 +31,20 @@ func (s *HouseServiceImpl) PubHouse(ctx context.Context, req *kitex_gen.PubHouse
 		response := utils.HouseResponse(utils.RECODE_SERVERERR, nil)
 		return &response, nil
 	}
-	pubResp := handler.PubHouse(houseMap)
+	pubResp := handler.PubHouse(req.SessionId, houseMap)
 	if utils.RECODE_OK != pubResp.Errno {
 		utils.NewLog().Info("PubHouse error:", pubResp)
 	}
 	return &pubResp, nil
 
+}
+
+// GetUserHouse implements the HouseServiceImpl interface.
+func (s *HouseServiceImpl) GetUserHouse(ctx context.Context, req *kitex_gen.GetUserHouseRequest) (resp *kitex_gen.Response, err error) {
+	utils.NewLog().Debug("GetHouse start....")
+	userHouseResp := handler.GetUserHouse(req.SessionId)
+	if utils.RECODE_OK != userHouseResp.Errno {
+		utils.NewLog().Info("GetUserHouse error:", userHouseResp)
+	}
+	return &userHouseResp, nil
 }
