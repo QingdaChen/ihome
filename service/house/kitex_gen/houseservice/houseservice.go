@@ -22,9 +22,11 @@ func NewServiceInfo() *kitex.ServiceInfo {
 	serviceName := "HouseService"
 	handlerType := (*kitex_gen.HouseService)(nil)
 	methods := map[string]kitex.MethodInfo{
-		"GetArea":      kitex.NewMethodInfo(getAreaHandler, newGetAreaArgs, newGetAreaResult, false),
-		"PubHouse":     kitex.NewMethodInfo(pubHouseHandler, newPubHouseArgs, newPubHouseResult, false),
-		"GetUserHouse": kitex.NewMethodInfo(getUserHouseHandler, newGetUserHouseArgs, newGetUserHouseResult, false),
+		"GetArea":        kitex.NewMethodInfo(getAreaHandler, newGetAreaArgs, newGetAreaResult, false),
+		"PubHouse":       kitex.NewMethodInfo(pubHouseHandler, newPubHouseArgs, newPubHouseResult, false),
+		"GetUserHouse":   kitex.NewMethodInfo(getUserHouseHandler, newGetUserHouseArgs, newGetUserHouseResult, false),
+		"UploadHouseImg": kitex.NewMethodInfo(uploadHouseImgHandler, newUploadHouseImgArgs, newUploadHouseImgResult, false),
+		"GetHouseDetail": kitex.NewMethodInfo(getHouseDetailHandler, newGetHouseDetailArgs, newGetHouseDetailResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "house",
@@ -349,6 +351,212 @@ func (p *GetUserHouseResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
+func uploadHouseImgHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(kitex_gen.UploadHouseImgReq)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(kitex_gen.HouseService).UploadHouseImg(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := st.SendMsg(resp); err != nil {
+			return err
+		}
+	case *UploadHouseImgArgs:
+		success, err := handler.(kitex_gen.HouseService).UploadHouseImg(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*UploadHouseImgResult)
+		realResult.Success = success
+	}
+	return nil
+}
+func newUploadHouseImgArgs() interface{} {
+	return &UploadHouseImgArgs{}
+}
+
+func newUploadHouseImgResult() interface{} {
+	return &UploadHouseImgResult{}
+}
+
+type UploadHouseImgArgs struct {
+	Req *kitex_gen.UploadHouseImgReq
+}
+
+func (p *UploadHouseImgArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, fmt.Errorf("No req in UploadHouseImgArgs")
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *UploadHouseImgArgs) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.UploadHouseImgReq)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var UploadHouseImgArgs_Req_DEFAULT *kitex_gen.UploadHouseImgReq
+
+func (p *UploadHouseImgArgs) GetReq() *kitex_gen.UploadHouseImgReq {
+	if !p.IsSetReq() {
+		return UploadHouseImgArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *UploadHouseImgArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+type UploadHouseImgResult struct {
+	Success *kitex_gen.Response
+}
+
+var UploadHouseImgResult_Success_DEFAULT *kitex_gen.Response
+
+func (p *UploadHouseImgResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, fmt.Errorf("No req in UploadHouseImgResult")
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *UploadHouseImgResult) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.Response)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *UploadHouseImgResult) GetSuccess() *kitex_gen.Response {
+	if !p.IsSetSuccess() {
+		return UploadHouseImgResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *UploadHouseImgResult) SetSuccess(x interface{}) {
+	p.Success = x.(*kitex_gen.Response)
+}
+
+func (p *UploadHouseImgResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func getHouseDetailHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(kitex_gen.GetHouseDetailReg)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(kitex_gen.HouseService).GetHouseDetail(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := st.SendMsg(resp); err != nil {
+			return err
+		}
+	case *GetHouseDetailArgs:
+		success, err := handler.(kitex_gen.HouseService).GetHouseDetail(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*GetHouseDetailResult)
+		realResult.Success = success
+	}
+	return nil
+}
+func newGetHouseDetailArgs() interface{} {
+	return &GetHouseDetailArgs{}
+}
+
+func newGetHouseDetailResult() interface{} {
+	return &GetHouseDetailResult{}
+}
+
+type GetHouseDetailArgs struct {
+	Req *kitex_gen.GetHouseDetailReg
+}
+
+func (p *GetHouseDetailArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, fmt.Errorf("No req in GetHouseDetailArgs")
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *GetHouseDetailArgs) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.GetHouseDetailReg)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var GetHouseDetailArgs_Req_DEFAULT *kitex_gen.GetHouseDetailReg
+
+func (p *GetHouseDetailArgs) GetReq() *kitex_gen.GetHouseDetailReg {
+	if !p.IsSetReq() {
+		return GetHouseDetailArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *GetHouseDetailArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+type GetHouseDetailResult struct {
+	Success *kitex_gen.HouseDetailResp
+}
+
+var GetHouseDetailResult_Success_DEFAULT *kitex_gen.HouseDetailResp
+
+func (p *GetHouseDetailResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, fmt.Errorf("No req in GetHouseDetailResult")
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *GetHouseDetailResult) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.HouseDetailResp)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *GetHouseDetailResult) GetSuccess() *kitex_gen.HouseDetailResp {
+	if !p.IsSetSuccess() {
+		return GetHouseDetailResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *GetHouseDetailResult) SetSuccess(x interface{}) {
+	p.Success = x.(*kitex_gen.HouseDetailResp)
+}
+
+func (p *GetHouseDetailResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -384,6 +592,26 @@ func (p *kClient) GetUserHouse(ctx context.Context, Req *kitex_gen.GetUserHouseR
 	_args.Req = Req
 	var _result GetUserHouseResult
 	if err = p.c.Call(ctx, "GetUserHouse", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) UploadHouseImg(ctx context.Context, Req *kitex_gen.UploadHouseImgReq) (r *kitex_gen.Response, err error) {
+	var _args UploadHouseImgArgs
+	_args.Req = Req
+	var _result UploadHouseImgResult
+	if err = p.c.Call(ctx, "UploadHouseImg", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) GetHouseDetail(ctx context.Context, Req *kitex_gen.GetHouseDetailReg) (r *kitex_gen.HouseDetailResp, err error) {
+	var _args GetHouseDetailArgs
+	_args.Req = Req
+	var _result GetHouseDetailResult
+	if err = p.c.Call(ctx, "GetHouseDetail", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

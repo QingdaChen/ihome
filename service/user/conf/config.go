@@ -45,11 +45,6 @@ const (
 	PhoneCode string = "123456"
 )
 
-//fastDfs
-const (
-	FastDfsCfgFilePath string = "conf/fastDfs.conf"
-)
-
 //nginx
 const (
 	NginxUrl string = "http://192.168.31.219:8888"

@@ -54,7 +54,7 @@ func DeleteImgByHandler(sessionId string, m map[string]string) {
 		if user.Avatar_url != "" {
 			//已经上传过头像了,就启动协程删除
 			utils.NewLog().Debug("DeleteFileByHandler....")
-			err := model.FastDfsClient.Client.DeleteFile(user.Avatar_url)
+			err := po.FastDfsClient.Client.DeleteFile(user.Avatar_url)
 			if err != nil {
 				//TODO 记录
 				utils.NewLog().Error("FastDfsClient.Client.DeleteFile fail....")

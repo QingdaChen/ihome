@@ -2,11 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	redis2 "github.com/go-redis/redis/v8"
 	"github.com/tedcy/fdfs_client"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 	"ihome/web/conf"
 	"ihome/web/utils"
 	"strconv"
@@ -68,11 +65,18 @@ func main() {
 	//testCache()
 	//testRedis2()
 	//testFastDfs()
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/search_house?charset=utf8&parseTime=True&loc=Local",
-		conf.MysqlUser, conf.MysqlPasswd, conf.MysqlIp, conf.MysqlPort)
-	db, _ := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-
-	db.CreateInBatches(&[]HouseFacilities{{1, 2}, {1, 3}}, 2)
+	//dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/search_house?charset=utf8&parseTime=True&loc=Local",
+	//	conf.MysqlUser, conf.MysqlPasswd, conf.MysqlIp, conf.MysqlPort)
+	//db, _ := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	//
+	//db.CreateInBatches(&[]HouseFacilities{{1, 2}, {1, 3}}, 2)
+	a := make([]int, 0)
+	func(a *[]int) {
+		b := make([]int, 0)
+		b = append(b, 1)
+		*a = append(*a, 1)
+	}(&a)
+	utils.NewLog().Info(a)
 
 }
 

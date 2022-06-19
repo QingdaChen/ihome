@@ -14,6 +14,8 @@ type Client interface {
 	GetArea(ctx context.Context, Req *kitex_gen.AreaRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 	PubHouse(ctx context.Context, Req *kitex_gen.PubHouseRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 	GetUserHouse(ctx context.Context, Req *kitex_gen.GetUserHouseRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
+	UploadHouseImg(ctx context.Context, Req *kitex_gen.UploadHouseImgReq, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
+	GetHouseDetail(ctx context.Context, Req *kitex_gen.GetHouseDetailReg, callOptions ...callopt.Option) (r *kitex_gen.HouseDetailResp, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -58,4 +60,14 @@ func (p *kHouseServiceClient) PubHouse(ctx context.Context, Req *kitex_gen.PubHo
 func (p *kHouseServiceClient) GetUserHouse(ctx context.Context, Req *kitex_gen.GetUserHouseRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.GetUserHouse(ctx, Req)
+}
+
+func (p *kHouseServiceClient) UploadHouseImg(ctx context.Context, Req *kitex_gen.UploadHouseImgReq, callOptions ...callopt.Option) (r *kitex_gen.Response, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.UploadHouseImg(ctx, Req)
+}
+
+func (p *kHouseServiceClient) GetHouseDetail(ctx context.Context, Req *kitex_gen.GetHouseDetailReg, callOptions ...callopt.Option) (r *kitex_gen.HouseDetailResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.GetHouseDetail(ctx, Req)
 }

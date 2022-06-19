@@ -59,6 +59,12 @@ func handlerHouseService(ctx *gin.Context, result interface{}, req interface{}) 
 	case house_kitex_gen.GetUserHouseRequest:
 		request := req.(house_kitex_gen.GetUserHouseRequest)
 		response, err = service.GetUserHouse(ctx, &request)
+	case house_kitex_gen.UploadHouseImgReq:
+		request := req.(house_kitex_gen.UploadHouseImgReq)
+		response, err = service.UploadHouseImg(ctx, &request)
+	case house_kitex_gen.GetHouseDetailReg:
+		request := req.(house_kitex_gen.GetHouseDetailReg)
+		response, err = service.GetHouseDetail(ctx, &request)
 	default:
 		err = errors.New("handlerHouseService error")
 	}

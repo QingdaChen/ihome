@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	po "ihome/service/model"
 	"ihome/service/user/conf"
 	"ihome/service/user/handler"
 	"ihome/service/user/kitex_gen"
@@ -151,7 +152,7 @@ func (s *UserServiceImpl) UploadImg(ctx context.Context, req *kitex_gen.UploadIm
 	//先上传
 	//utils.NewLog().Info("base64:  ", req.ImgBase64)
 
-	uploadResp := model.FastDfsClient.UploadImg(req.ImgBase64, req.FileType)
+	uploadResp := po.FastDfsClient.UploadImg(req.ImgBase64, req.FileType)
 	if utils.RECODE_OK != uploadResp.Errno {
 		//TODO 存数据库记录
 		utils.NewLog().Info("UploadImg error", uploadResp)
@@ -170,26 +171,5 @@ func (s *UserServiceImpl) UploadImg(ctx context.Context, req *kitex_gen.UploadIm
 	//直接提交协程启动删除旧的头像
 	handler.DeleteImgByHandler(req.SessionId, m)
 	return &uploadResp, nil
-	//model.UpdateSessionInfo()
-	//查头像原url
-	//userResp := handler.GetUserInfoByHandler(req.SessionId)
-	//if utils.RECODE_OK != userResp.Errno {
-	//	//TODO 存数据库记录
-	//	utils.NewLog().Info("GetUserInfoByHandler error", userResp)
-	//	return &userResp, nil
-	//}
-	////成功就更新数据库和缓存
-	//updateResp := handler.UpdateUserInfoByHandler(req.SessionId, "avatar_url", (string)(uploadResp.Data))
-	//if utils.RECODE_OK != updateResp.Errno {
-	//	//TODO 存数据库记录
-	//	utils.NewLog().Info("UpdateUserInfoByHandler error", updateResp)
-	//	return &updateResp, nil
-	//}
-	//都成功启动协程删除原头像
-	//handler.DeleteFileByHandler(userResp.Data)
-	//拼接头像地址
-	//fileName := fmt.Sprintf("%s/%s", conf.NginxUrl, (string)(uploadResp.Data))
-	//utils.NewLog().Debug("fileName :", fileName)
-	//uploadResp.Data = []byte(fileName)
-	//return &uploadResp, nil
+
 }

@@ -70,3 +70,7 @@ func UserResponse(errCode string, data []byte) user_kitex_gen.Response {
 func HouseResponse(errCode string, data []byte) house_kitex_gen.Response {
 	return house_kitex_gen.Response{Errno: errCode, Errmsg: RecodeText(errCode), Data: data}
 }
+
+func HouseDetailResponse(errCode string, data *house_kitex_gen.HouseDetailData) house_kitex_gen.HouseDetailResp {
+	return house_kitex_gen.HouseDetailResp{Errno: errCode, Errmsg: RecodeText(errCode), Data: data}
+}

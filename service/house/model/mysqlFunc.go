@@ -2,9 +2,10 @@ package model
 
 import (
 	"encoding/json"
+	"github.com/mitchellh/mapstructure"
 	"ihome/service/house/kitex_gen"
 	"ihome/service/utils"
-	"strconv"
+	"ihome/web/model"
 )
 
 //GetMysql obj 使用对象指针: obj := &[]Area{}
@@ -39,7 +40,7 @@ func SaveMysqlHouseFac(houseFacs []HouseFacilities) kitex_gen.Response {
 	return utils.HouseResponse(utils.RECODE_OK, nil)
 }
 
-func GetMysqlHouse(userId int) kitex_gen.Response {
+func GetMysqlHouses(userId int) kitex_gen.Response {
 	houses := make([]House, 0)
 	err := MysqlConn.Debug().Where("user_id", userId).Find(&houses).Error
 	if err != nil {
@@ -48,6 +49,58 @@ func GetMysqlHouse(userId int) kitex_gen.Response {
 	}
 	data, _ := json.Marshal(&houses)
 	return utils.HouseResponse(utils.RECODE_OK, data)
+
+}
+
+//GetMysqlHouseImg 获取house img
+func GetMysqlHouseImg(houseId int) []string {
+	type Url struct {
+		Url string
+	}
+	houseImages := make([]Url, 0)
+	res := make([]string, 0)
+	err := MysqlConn.Debug().Model(&HouseImage{}).Order("id asc").
+		Where("house_id = ?", houseId).Find(&houseImages).Error
+	if err != nil {
+		utils.NewLog().Info("Find error:", err)
+		return res
+	}
+	for _, item := range houseImages {
+		res = append(res, item.Url)
+	}
+	utils.NewLog().Debug("img urls res:", res)
+	return res
+}
+
+//SaveMysqlHouseIdImg 保存houseID img
+func SaveMysqlHouseIdImg(houseID int, imgUrl string) {
+	err := MysqlConn.Debug().Model(&HouseImage{}).
+		Create(&HouseImage{HouseId: uint(houseID), Url: imgUrl}).Error
+	if err != nil {
+		utils.NewLog().Info("SaveMysqlHouseIdImg error:", err)
+	}
+
+}
+
+//GetMysqlHouseInfo 获取house信息
+func GetMysqlHouseInfo(houseId int) (House, error) {
+	house := House{}
+	err := MysqlConn.Debug().Where("id = ?", houseId).First(&house).Error
+	if err != nil {
+		return house, err
+	}
+	return house, nil
+}
+
+func GetMysqlHouseFacilityIds(houseId int) []int {
+	houseFacility := make([]HouseFacilities, 0)
+	MysqlConn.Debug().Where("house_id=?", houseId).Find(&houseFacility)
+	fid := make([]int, 0)
+	for _, item := range houseFacility {
+		fid = append(fid, item.FacilityId)
+	}
+	utils.NewLog().Debug("fid:", fid)
+	return fid
 
 }
 func SaveMysqlHouse(houseMap map[string]interface{}) kitex_gen.Response {
@@ -62,36 +115,22 @@ func SaveMysqlHouse(houseMap map[string]interface{}) kitex_gen.Response {
 		utils.NewLog().Info("mysql Create:", err)
 		return utils.HouseResponse(utils.RECODE_SERVERERR, nil)
 	}
-	id := strconv.Itoa(int(house.ID))
-	return utils.HouseResponse(utils.RECODE_OK, []byte(id))
+	//id := strconv.Itoa(int(house.ID))
+	data, _ := json.Marshal(house)
+	return utils.HouseResponse(utils.RECODE_OK, data)
+}
+
+//GetMysqlHouseIds 获取用户的所有houseId
+func GetMysqlHouseIds(userId int) *[]model.House {
+	utils.NewLog().Debug("GetMysqlHouseIds...")
+	houses := make([]model.House, 0)
+	MysqlConn.Debug().Model(&House{}).Where("user_id=?", userId).Find(&houses)
+	return &houses
 }
 
 func setHouse(house *House, m map[string]interface{}) {
-	userId, _ := strconv.ParseInt(m["user_id"].(string), 10, 32)
-	house.UserId = uint(userId)
-	areaId, _ := strconv.ParseInt(m["area_id"].(string), 10, 32)
-	house.AreaId = uint(areaId)
-	house.Title = m["title"].(string)
-	house.Address = m["address"].(string)
-	roomCount, _ := strconv.ParseInt(m["room_count"].(string), 10, 32)
-	house.Room_count = int(roomCount)
-	acreage, _ := strconv.ParseInt(m["acreage"].(string), 10, 32)
-	house.Acreage = int(acreage)
-	price, _ := strconv.ParseInt(m["price"].(string), 10, 32)
-	house.Price = int(price)
-	house.Unit = m["unit"].(string)
-	utils.NewLog().Info("capacity:", m["capacity"])
-	capacity, _ := strconv.ParseInt(m["capacity"].(string), 10, 32)
-	house.Capacity = int(capacity)
-	house.Beds = m["beds"].(string)
-	deposit, _ := strconv.ParseInt(m["deposit"].(string), 10, 32)
-	house.Deposit = int(deposit)
-	minDays, _ := strconv.ParseInt(m["min_days"].(string), 10, 32)
-	house.Min_days = int(minDays)
-	maxDays, _ := strconv.ParseInt(m["max_days"].(string), 10, 32)
-	house.Max_days = int(maxDays)
-	//orderCount, _ := strconv.ParseInt(m["order_count"].(string), 10, 32)
-	//house.Order_count = int(orderCount)
-	//house.Index_image_url = m["index_image_url"].(string)
-	//mapstructure.Decode(m, house)
+	mapstructure.WeakDecode(m, house)
+	house.UserId = uint(utils.PareInt(m["user_id"].(string)))
+	house.AreaId = uint(utils.PareInt(m["area_id"].(string)))
+	utils.NewLog().Debug("house:", house)
 }

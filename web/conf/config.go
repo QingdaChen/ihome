@@ -10,7 +10,8 @@ const (
 
 // web
 const (
-	WebPort int = 8088
+	WebPort           int = 8088
+	UploadFileMaxSize     = 1024 * 1024 * 5 //5M
 )
 
 // captcha服务

@@ -1,5 +1,7 @@
 package model
 
+import "gorm.io/gorm"
+
 type SessionPo struct {
 	ID     int    `json:"id"`     //用户编号
 	Name   string `json:"name"`   //用户名
@@ -43,4 +45,25 @@ type UserPo struct {
 	Avatar_url    string `json:"avatar_url" `   //用户头像路径       通过fastdfs进行图片存储
 	//Houses        []*HousePo      //用户发布的房屋信息  一个人多套房
 	//Orders        []*OrderHouse //用户下的订单       一个人多次订单
+}
+
+/* 房屋信息 table_name = house */
+type HouseRedisPo struct {
+	gorm.Model             //房屋编号
+	UserId          uint   `json:"user_id"`                     //房屋主人的用户编号  与用户进行关联
+	AreaId          uint   `json:"area_id"`                     //归属地的区域编号   和地区表进行关联
+	Title           string `json:"title" map:"title"`           //房屋标题
+	Address         string `json:"address" map:"address"`       //地址
+	Room_count      int    `json:"room_count" map:"room_count"` //房间数目
+	Acreage         int    `json:"acreage" map:"acreage"`       //房屋总面积
+	Price           int    `json:"price" map:"price"`
+	Unit            string `json:"unit" map:"unit"`                       //房屋单元,如 几室几厅
+	Capacity        int    `json:"capacity" map:"capacity"`               //房屋容纳的总人数
+	Beds            string `json:"beds" map:"beds"`                       //房屋床铺的配置
+	Deposit         int    `json:"deposit" map:"deposit"`                 //押金
+	Min_days        int    `json:"min_days" map:"min_days"`               //最少入住的天数
+	Max_days        int    `json:"max_days" map:"max_days"`               //最多入住的天数 0表示不限制
+	Order_count     int    `json:"order_count" map:"order_count"`         //预定完成的该房屋的订单数
+	Index_image_url string `json:"index_image_url" map:"index_image_url"` //房屋主图片路径
+	Facilities      []int  `json:"facilities"`                            //房屋设施   与设施表进行关联
 }

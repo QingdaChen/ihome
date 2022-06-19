@@ -4,10 +4,15 @@ import "time"
 
 // house服务
 const (
-	ServerIp             string = "192.168.31.219"
-	ServerPort           int    = 9002
-	ServerMaxConnections int    = 1000
-	ServerMaxQPS         int    = 100
+	ServerIp              string = "192.168.31.219"
+	ServerPort            int    = 9002
+	ServerMaxConnections  int    = 1000
+	ServerMaxQPS          int    = 100
+	HouseInfoRedisIndex   string = "houseInfo"
+	HouseInfoRedisTimeOut        = 65535 * time.Hour //hour
+	HouseImgRedisIndex    string = "houseImages"
+	HouseImgRedisTimeOut         = 24 * 30 * time.Hour
+	HouseTaskTimeOut             = 5 * time.Second
 )
 
 // user服务
@@ -15,9 +20,9 @@ const (
 	UserServerIp             string = "192.168.31.219"
 	UserServerPort           int    = 9001
 	UserServiceIndex         string = "userService"
-	UserHouseRedisIndex      string = "user_houses"
+	UserHousesRedisIndex     string = "user_housesInfo"
 	UserRedisIndex           string = "userInfo"
-	UserHouseRedisTimeOut           = 2 * time.Hour //hour
+	UserHousesRedisTimeOut          = 2 * time.Hour //hour
 	UserServerMaxConnections int    = 1000
 	UserServerMaxQPS         int    = 100
 	AvatarUrlIndex           string = "avatar_url"

@@ -14,6 +14,56 @@ message PubHouseRequest{
   string sessionId = 1; //sessionId
   bytes params = 2; //参数json
 }
+
+message UploadHouseImgReq{
+  int64 houseId = 1;
+  string fileType = 2; //图像格式类型
+  string imgBase64 = 3;  //图像base64串
+}
+
+//获取房子详细信息
+message GetHouseDetailReg{
+  string sessionId = 1;
+  int64 houseId = 2;
+}
+
+//返回house详细信息
+message HouseDetailResp{
+  string errno = 1;
+  string errmsg = 2;
+  HouseDetailData data = 3;
+}
+message HouseDetailData{
+  HouseDetail house =1 ;
+  int64 user_id =2;
+}
+
+message HouseDetail{
+  int64 acreage = 1;
+  string address = 2;
+  string beds = 3;
+  int32 capacity = 4;
+  repeated CommentInfo comments = 5;
+  int64 deposit = 6;
+  repeated int32 facilities = 7;
+  int64 hid  = 8; //house_id
+  repeated string img_urls = 9;
+  int32  max_days = 10;
+  int32 min_days = 11;
+  int64 price = 12;
+  int32 room_count = 13;
+  string title = 14;
+  string unit = 15;
+  string user_avatar = 16;
+  int64 user_id = 17;
+  string user_name = 18;
+
+}
+message CommentInfo{
+  string comment = 1;
+  string ctime = 2;
+  string user_name = 3;
+}
 message Response{
   //返回错误码、信息和数据
   string errno = 1;
@@ -25,4 +75,6 @@ service HouseService{
   rpc GetArea(AreaRequest) returns (Response) {}
   rpc PubHouse(PubHouseRequest) returns (Response) {}
   rpc GetUserHouse(GetUserHouseRequest) returns (Response) {}
+  rpc UploadHouseImg(UploadHouseImgReq) returns (Response) {} //上传房子图像
+  rpc GetHouseDetail(GetHouseDetailReg) returns (HouseDetailResp) {} //获取房子详细信息
 }

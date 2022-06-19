@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"ihome/web/conf"
 	"ihome/web/controller"
 )
 
@@ -20,6 +21,8 @@ func InitRouters() *gin.Engine {
 	//linux
 	//router.Static("/home/login", "view/login.html")
 	router.Static("/home", "view")
+	router.Static("/static", "view")
+	router.MaxMultipartMemory = conf.UploadFileMaxSize
 
 	v1 := router.Group("/api/v1.0")
 	{
@@ -43,7 +46,8 @@ func InitRouters() *gin.Engine {
 		//house
 		v1.GET("/user/houses", controller.GetUserHouses) //获取用户发布的所有房子信息
 		v1.POST("/houses", controller.PubHouses)         //用户发布房子信息
-
+		v1.POST("/houses/:id/images", controller.UploadHouseImg)
+		v1.GET("/houses/:id", controller.GetHouseDetail)
 	}
 
 	return router

@@ -46,6 +46,7 @@ func SaveRedis(key string, data []byte, expire time.Duration) kitex_gen.Response
 		utils.NewLog().Error("conn.Set error...", err)
 		return utils.HouseResponse(utils.RECODE_SERVERERR, nil)
 	}
+	utils.NewLog().Debug("SaveRedis end...")
 	return utils.HouseResponse(utils.RECODE_OK, nil)
 }
 
@@ -60,6 +61,6 @@ func DeleteKey(key string) kitex_gen.Response {
 		utils.NewLog().Error("conn.Get error:", err)
 		return utils.HouseResponse(utils.RECODE_SERVERERR, nil)
 	}
-
+	//conn.MGet()
 	return utils.HouseResponse(utils.RECODE_OK, nil)
 }

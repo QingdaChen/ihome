@@ -48,3 +48,23 @@ func (s *HouseServiceImpl) GetUserHouse(ctx context.Context, req *kitex_gen.GetU
 	}
 	return &userHouseResp, nil
 }
+
+// UploadHouseImg implements the HouseServiceImpl interface.
+func (s *HouseServiceImpl) UploadHouseImg(ctx context.Context, req *kitex_gen.UploadHouseImgReq) (resp *kitex_gen.Response, err error) {
+	utils.NewLog().Debug("UploadHouseImg start....")
+	uploadResp := handler.UploadHouseImg(int(req.HouseId), req.FileType, req.ImgBase64)
+	if utils.RECODE_OK != uploadResp.Errno {
+		utils.NewLog().Info("UploadHouseImg error", uploadResp)
+	}
+	return &uploadResp, nil
+}
+
+// GetHouseDetail implements the HouseServiceImpl interface.
+func (s *HouseServiceImpl) GetHouseDetail(ctx context.Context, req *kitex_gen.GetHouseDetailReg) (resp *kitex_gen.HouseDetailResp, err error) {
+	utils.NewLog().Debug("GetHouseDetail start...")
+	detailResp := handler.GetHouseDetail(req.SessionId, int(req.HouseId))
+	if utils.RECODE_OK != detailResp.Errno {
+		utils.NewLog().Info("UploadHouseImg error", detailResp)
+	}
+	return detailResp, nil
+}
