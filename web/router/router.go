@@ -23,7 +23,7 @@ func InitRouters() *gin.Engine {
 	router.Static("/home", "view")
 	router.Static("/static", "view")
 	router.MaxMultipartMemory = conf.UploadFileMaxSize
-
+	router.GET("/", controller.Index)
 	v1 := router.Group("/api/v1.0")
 	{
 
@@ -32,6 +32,7 @@ func InitRouters() *gin.Engine {
 		v1.POST("/users", controller.Register)
 		v1.GET("/areas", controller.GetAreas) //获取房子地域信息
 		v1.GET("/test", controller.Test)
+
 		v1.POST("/sessions", controller.PostLogin) //登录
 		v1.GET("/session", controller.GetSession)  //获取用户信息
 
@@ -44,10 +45,13 @@ func InitRouters() *gin.Engine {
 		v1.GET("/user/auth", controller.GetUserInfo)
 		v1.POST("/user/auth", controller.UpdateUserInfo)
 		//house
+		v1.GET("/house/index", controller.HomePageIndex) //获取首页轮播
 		v1.GET("/user/houses", controller.GetUserHouses) //获取用户发布的所有房子信息
 		v1.POST("/houses", controller.PubHouses)         //用户发布房子信息
+		v1.GET("/houses", controller.SearchHouse)        //搜索房源
 		v1.POST("/houses/:id/images", controller.UploadHouseImg)
 		v1.GET("/houses/:id", controller.GetHouseDetail)
+
 	}
 
 	return router

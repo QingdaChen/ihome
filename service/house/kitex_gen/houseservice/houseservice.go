@@ -27,6 +27,8 @@ func NewServiceInfo() *kitex.ServiceInfo {
 		"GetUserHouse":   kitex.NewMethodInfo(getUserHouseHandler, newGetUserHouseArgs, newGetUserHouseResult, false),
 		"UploadHouseImg": kitex.NewMethodInfo(uploadHouseImgHandler, newUploadHouseImgArgs, newUploadHouseImgResult, false),
 		"GetHouseDetail": kitex.NewMethodInfo(getHouseDetailHandler, newGetHouseDetailArgs, newGetHouseDetailResult, false),
+		"SearchHouse":    kitex.NewMethodInfo(searchHouseHandler, newSearchHouseArgs, newSearchHouseResult, false),
+		"HouseHomeIndex": kitex.NewMethodInfo(houseHomeIndexHandler, newHouseHomeIndexArgs, newHouseHomeIndexResult, false),
 	}
 	extra := map[string]interface{}{
 		"PackageName": "house",
@@ -557,6 +559,212 @@ func (p *GetHouseDetailResult) IsSetSuccess() bool {
 	return p.Success != nil
 }
 
+func searchHouseHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(kitex_gen.HouseSearchReq)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(kitex_gen.HouseService).SearchHouse(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := st.SendMsg(resp); err != nil {
+			return err
+		}
+	case *SearchHouseArgs:
+		success, err := handler.(kitex_gen.HouseService).SearchHouse(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*SearchHouseResult)
+		realResult.Success = success
+	}
+	return nil
+}
+func newSearchHouseArgs() interface{} {
+	return &SearchHouseArgs{}
+}
+
+func newSearchHouseResult() interface{} {
+	return &SearchHouseResult{}
+}
+
+type SearchHouseArgs struct {
+	Req *kitex_gen.HouseSearchReq
+}
+
+func (p *SearchHouseArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, fmt.Errorf("No req in SearchHouseArgs")
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *SearchHouseArgs) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.HouseSearchReq)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var SearchHouseArgs_Req_DEFAULT *kitex_gen.HouseSearchReq
+
+func (p *SearchHouseArgs) GetReq() *kitex_gen.HouseSearchReq {
+	if !p.IsSetReq() {
+		return SearchHouseArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *SearchHouseArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+type SearchHouseResult struct {
+	Success *kitex_gen.HouseSearchResp
+}
+
+var SearchHouseResult_Success_DEFAULT *kitex_gen.HouseSearchResp
+
+func (p *SearchHouseResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, fmt.Errorf("No req in SearchHouseResult")
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *SearchHouseResult) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.HouseSearchResp)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *SearchHouseResult) GetSuccess() *kitex_gen.HouseSearchResp {
+	if !p.IsSetSuccess() {
+		return SearchHouseResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *SearchHouseResult) SetSuccess(x interface{}) {
+	p.Success = x.(*kitex_gen.HouseSearchResp)
+}
+
+func (p *SearchHouseResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
+func houseHomeIndexHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	switch s := arg.(type) {
+	case *streaming.Args:
+		st := s.Stream
+		req := new(kitex_gen.HouseHomeIndexReg)
+		if err := st.RecvMsg(req); err != nil {
+			return err
+		}
+		resp, err := handler.(kitex_gen.HouseService).HouseHomeIndex(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := st.SendMsg(resp); err != nil {
+			return err
+		}
+	case *HouseHomeIndexArgs:
+		success, err := handler.(kitex_gen.HouseService).HouseHomeIndex(ctx, s.Req)
+		if err != nil {
+			return err
+		}
+		realResult := result.(*HouseHomeIndexResult)
+		realResult.Success = success
+	}
+	return nil
+}
+func newHouseHomeIndexArgs() interface{} {
+	return &HouseHomeIndexArgs{}
+}
+
+func newHouseHomeIndexResult() interface{} {
+	return &HouseHomeIndexResult{}
+}
+
+type HouseHomeIndexArgs struct {
+	Req *kitex_gen.HouseHomeIndexReg
+}
+
+func (p *HouseHomeIndexArgs) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetReq() {
+		return out, fmt.Errorf("No req in HouseHomeIndexArgs")
+	}
+	return proto.Marshal(p.Req)
+}
+
+func (p *HouseHomeIndexArgs) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.HouseHomeIndexReg)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Req = msg
+	return nil
+}
+
+var HouseHomeIndexArgs_Req_DEFAULT *kitex_gen.HouseHomeIndexReg
+
+func (p *HouseHomeIndexArgs) GetReq() *kitex_gen.HouseHomeIndexReg {
+	if !p.IsSetReq() {
+		return HouseHomeIndexArgs_Req_DEFAULT
+	}
+	return p.Req
+}
+
+func (p *HouseHomeIndexArgs) IsSetReq() bool {
+	return p.Req != nil
+}
+
+type HouseHomeIndexResult struct {
+	Success *kitex_gen.HouseSearchResp
+}
+
+var HouseHomeIndexResult_Success_DEFAULT *kitex_gen.HouseSearchResp
+
+func (p *HouseHomeIndexResult) Marshal(out []byte) ([]byte, error) {
+	if !p.IsSetSuccess() {
+		return out, fmt.Errorf("No req in HouseHomeIndexResult")
+	}
+	return proto.Marshal(p.Success)
+}
+
+func (p *HouseHomeIndexResult) Unmarshal(in []byte) error {
+	msg := new(kitex_gen.HouseSearchResp)
+	if err := proto.Unmarshal(in, msg); err != nil {
+		return err
+	}
+	p.Success = msg
+	return nil
+}
+
+func (p *HouseHomeIndexResult) GetSuccess() *kitex_gen.HouseSearchResp {
+	if !p.IsSetSuccess() {
+		return HouseHomeIndexResult_Success_DEFAULT
+	}
+	return p.Success
+}
+
+func (p *HouseHomeIndexResult) SetSuccess(x interface{}) {
+	p.Success = x.(*kitex_gen.HouseSearchResp)
+}
+
+func (p *HouseHomeIndexResult) IsSetSuccess() bool {
+	return p.Success != nil
+}
+
 type kClient struct {
 	c client.Client
 }
@@ -612,6 +820,26 @@ func (p *kClient) GetHouseDetail(ctx context.Context, Req *kitex_gen.GetHouseDet
 	_args.Req = Req
 	var _result GetHouseDetailResult
 	if err = p.c.Call(ctx, "GetHouseDetail", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) SearchHouse(ctx context.Context, Req *kitex_gen.HouseSearchReq) (r *kitex_gen.HouseSearchResp, err error) {
+	var _args SearchHouseArgs
+	_args.Req = Req
+	var _result SearchHouseResult
+	if err = p.c.Call(ctx, "SearchHouse", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) HouseHomeIndex(ctx context.Context, Req *kitex_gen.HouseHomeIndexReg) (r *kitex_gen.HouseSearchResp, err error) {
+	var _args HouseHomeIndexArgs
+	_args.Req = Req
+	var _result HouseHomeIndexResult
+	if err = p.c.Call(ctx, "HouseHomeIndex", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

@@ -30,7 +30,7 @@
                 {{/each}}
             </ul>
             <div class="swiper-pagination"></div>
-            <div class="house-price">￥<span>{{(price/100.0).toFixed(0)}}</span>/晚</div>
+            <div class="house-price">￥<span>{{(price).toFixed(0)}}</span>/晚</div>
         </script>
         <div class="detail-con">
         </div>
@@ -72,7 +72,7 @@
             <div class="house-info layout-style">
                 <h3>房间详情</h3>
                 <ul class="house-info-list">
-                    <li>收取押金<span>{{(house.deposit/100.0).toFixed(0)}}</span></li>
+                    <li>收取押金<span>{{(house.deposit).toFixed(0)}}</span></li>
                     <li>最少入住天数<span>{{house.min_days}}</span></li>
                     <li>最多入住天数<span>{{if house.max_days==0}}无限制{{else}}{{house.max_days}}{{/if}}</span></li>
                 </ul>

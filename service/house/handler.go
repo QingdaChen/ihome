@@ -68,3 +68,23 @@ func (s *HouseServiceImpl) GetHouseDetail(ctx context.Context, req *kitex_gen.Ge
 	}
 	return detailResp, nil
 }
+
+// SearchHouse implements the HouseServiceImpl interface.
+func (s *HouseServiceImpl) SearchHouse(ctx context.Context, req *kitex_gen.HouseSearchReq) (resp *kitex_gen.HouseSearchResp, err error) {
+	utils.NewLog().Debug("SearchHouse start...")
+	searchResp := handler.SearchHouse(req)
+	if utils.RECODE_OK != searchResp.Errno {
+		utils.NewLog().Info("SearchHouse error", searchResp)
+	}
+	return searchResp, nil
+}
+
+// HouseHomeIndex implements the HouseServiceImpl interface.
+func (s *HouseServiceImpl) HouseHomeIndex(ctx context.Context, req *kitex_gen.HouseHomeIndexReg) (resp *kitex_gen.HouseSearchResp, err error) {
+	utils.NewLog().Debug("HouseHomeIndex start...")
+	indexResp := handler.GetHouseHomeIndex(req.SessionId)
+	if utils.RECODE_OK != indexResp.Errno {
+		utils.NewLog().Info("HouseHomeIndex error", indexResp)
+	}
+	return indexResp, nil
+}

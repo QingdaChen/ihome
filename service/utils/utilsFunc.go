@@ -26,14 +26,16 @@ func ConcatRedisKey(str1 string, val interface{}) string {
 	return ""
 }
 
-func IntToString(num int) string {
-	return strconv.Itoa(num)
+func IntToString(num interface{}) string {
+	switch num.(type) {
+	case int64:
+		return strconv.FormatInt(num.(int64), 10)
+	case int:
+		return strconv.Itoa(num.(int))
+	}
+	return ""
 }
 
 func GetFromJson(json, key string) string {
 	return gjson.Get(json, key).String()
-}
-
-func SetJson(json, key, val string) {
-
 }

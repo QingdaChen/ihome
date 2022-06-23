@@ -34,6 +34,7 @@ const (
 	HouseServerPort      int    = 9002
 	HouseAreasCacheIndex string = "areasData"
 	HouseServiceIndex    string = "houseService"
+	HouseSearchPageSize  int    = 10
 )
 
 //session

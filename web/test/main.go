@@ -6,6 +6,7 @@ import (
 	"github.com/tedcy/fdfs_client"
 	"ihome/web/conf"
 	"ihome/web/utils"
+	_ "net/http/pprof"
 	"strconv"
 	"time"
 )
@@ -70,14 +71,14 @@ func main() {
 	//db, _ := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	//
 	//db.CreateInBatches(&[]HouseFacilities{{1, 2}, {1, 3}}, 2)
-	a := make([]int, 0)
-	func(a *[]int) {
-		b := make([]int, 0)
-		b = append(b, 1)
-		*a = append(*a, 1)
-	}(&a)
-	utils.NewLog().Info(a)
-
+	//a := make([]int, 0)
+	//func(a *[]int) {
+	//	b := make([]int, 0)
+	//	b = append(b, 1)
+	//	*a = append(*a, 1)
+	//}(&a)
+	//utils.NewLog().Info(a)
+	testES()
 }
 
 func testFastDfs() {
@@ -87,4 +88,8 @@ func testFastDfs() {
 	}
 	filename, err2 := client.UploadByFilename("./test.jpg")
 	utils.NewLog().Info("", filename, err2)
+}
+
+func testES() {
+	//utils.NewLog().Debug("elasticsearch.ESClient:", elasticsearch.ESClient)
 }

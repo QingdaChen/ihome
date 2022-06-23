@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"ihome/service/elasticsearch"
 	"ihome/service/house/cache"
 	"ihome/service/house/conf"
 	"ihome/service/house/kitex_gen"
@@ -19,7 +20,7 @@ var ctx = context.Background()
 
 func PubHouse(sessionId string, houseMap map[string]interface{}) kitex_gen.Response {
 	//参数中的facilityId
-	fids := getFacilityId(houseMap)
+	fids := GetFacilityId(houseMap)
 	//查询redis获取session userId
 	sessionResp := model.GetRedis(conf.SessionLoginIndex + "_" + sessionId)
 	if utils.RECODE_OK != sessionResp.Errno {
@@ -33,7 +34,7 @@ func PubHouse(sessionId string, houseMap map[string]interface{}) kitex_gen.Respo
 		return utils.HouseResponse(utils.RECODE_SERVERERR, nil)
 	}
 	//判断facility是否存在Mysql
-	exist := existInMysql(fids)
+	exist := ExistInMysql(fids)
 	if !exist {
 		return utils.HouseResponse(utils.RECODE_SERVERERR, nil)
 	}
@@ -52,8 +53,6 @@ func PubHouse(sessionId string, houseMap map[string]interface{}) kitex_gen.Respo
 		utils.NewLog().Info("SaveMysqlHouseFac error:", houseFacResp)
 		return utils.HouseResponse(utils.RECODE_SERVERERR, nil)
 	}
-	//data, _ := json.Marshal(&houseFacilities[0])
-	//utils.NewLog().Info("facilities data:", data)
 	//启动协程处理
 	utils.AntsPool.Pool.Submit(func() {
 		//保存house到redis
@@ -66,6 +65,9 @@ func PubHouse(sessionId string, houseMap map[string]interface{}) kitex_gen.Respo
 			data, conf.HouseInfoRedisTimeOut)
 		//删除redis user_houses信息
 		model.DeleteKey(utils.ConcatRedisKey(conf.UserHousesRedisIndex, sessionId))
+		//设置ESHousePO并存入ES
+		SetESHouseTask(houseResp.Data)
+
 	})
 	return utils.HouseResponse(utils.RECODE_OK, []byte(strconv.Itoa(houseId)))
 }
@@ -138,7 +140,7 @@ func GetUserHouse(sessionId string) kitex_gen.Response {
 	//TODO 获取house img信息
 	houseList := make([]po.HousePo, 0)
 	for _, item := range houses {
-		housePo := getHousePo(&item, areaMap, utils.GetFromJson(string(userResp.Data), "avatar_url"))
+		housePo := GetHousePo(&item, areaMap, utils.GetFromJson(string(userResp.Data), "avatar_url"))
 		houseList = append(houseList, housePo)
 	}
 	utils.NewLog().Debug("housesList:", houseList)
@@ -190,7 +192,7 @@ func UploadHouseImg(houseId int, fileType string, imgBase64 string) kitex_gen.Re
 	response := utils.HouseResponse(utils.RECODE_OK, nil)
 	res, _ := json.Marshal(&resMap)
 	response.Data = res
-	saveHouseImg(houseId, imgPath)
+	SaveHouseImg(houseId, imgPath)
 	return response
 }
 
@@ -212,7 +214,7 @@ func GetHouseDetail(sessionId string, houseId int) *kitex_gen.HouseDetailResp {
 	utils.AntsPool.Pool.Submit(GetCommentsTask(&ctx, &wg, houseId, &comments))
 	utils.AntsPool.Pool.Submit(GetHouseImagesTask(&ctx, &wg, houseId, &imgUrls))
 	wg.Wait()
-	resp := setHouseDetailResp(house, user, &comments, &imgUrls)
+	resp := SetHouseDetailResp(house, user, &comments, &imgUrls)
 	return resp
 
 }
@@ -260,7 +262,7 @@ func GetUserInfo(sessionId string) kitex_gen.Response {
 	return utils.HouseResponse(response.Errno, response.Data)
 }
 
-//
+//GetHouseImgUrls 获得house的图像
 func GetHouseImgUrls(houseId int) kitex_gen.Response {
 	//先查redis
 	utils.NewLog().Debug("GetHouseImgUrls start...")
@@ -280,91 +282,48 @@ func GetHouseImgUrls(houseId int) kitex_gen.Response {
 	return utils.HouseResponse(utils.RECODE_OK, data)
 }
 
-func existInMysql(fids []int) bool {
-	facByte := GetFacilityIds().Data
-	facs := make([]model.FacilityPo, 25)
-	json.Unmarshal(facByte, &facs)
-	m := make(map[int]bool, 25)
-	for _, v := range facs {
-		m[v.Id] = true
+//SearchHouse 按条件搜索房源
+func SearchHouse(req *kitex_gen.HouseSearchReq) *kitex_gen.HouseSearchResp {
+	searchReq := &elasticsearch.HouseSearchReq{}
+	searchResp := &kitex_gen.HouseSearchResp{}
+	//searchReq := &elasticsearch.HouseSearchReq{}
+	SetHouseSearchReq(searchReq, req)
+	filter := searchReq.ToFilter()
+	ctx, _ := context.WithTimeout(context.Background(), conf.ESTaskTimeOut)
+	result, err := elasticsearch.HouseES.Search(ctx, filter)
+	if err != nil {
+		utils.NewLog().Info("elasticsearch.HouseES.Search error:", err)
+		searchResp.Errno = utils.RECODE_SERVERERR
+		searchResp.Errmsg = utils.RecodeText(utils.RECODE_SERVERERR)
+		return searchResp
 	}
-	for _, id := range fids {
-		if _, in := m[id]; !in {
-			utils.NewLog().Info("fids not in map:", m)
-			return false
-		}
-	}
-	return true
+	searchResp.Errno = utils.RECODE_OK
+	searchResp.Errmsg = utils.RecodeText(utils.RECODE_OK)
+	//设置搜索结果
+	searchResp.Data = SetHouseSearchData(req, filter, result)
+	return searchResp
 }
-func getFacilityId(houseMap map[string]interface{}) []int {
-	facility := houseMap["facility"]
-	utils.NewLog().Debug("facility:", facility)
-	facilityByte, _ := json.Marshal(facility)
-	fids := make([]string, 5)
-	json.Unmarshal(facilityByte, &fids)
-	utils.NewLog().Info("fids:", fids)
-	delete(houseMap, "facility")
-	res := make([]int, 0)
-	for _, idStr := range fids {
-		res = append(res, utils.PareInt(idStr))
-	}
-	return res
-}
-func getHousePo(item *model.House, areaMap map[int]string, avatarUrl string) po.HousePo {
-	housePo := po.HousePo{}
-	HousesByte, _ := json.Marshal(&item)
-	json.Unmarshal(HousesByte, &housePo)
-	housePo.Ctime = item.CreatedAt.Format(conf.MysqlTimeFormat)
-	housePo.HouseId = item.ID
-	housePo.AreaName = areaMap[int(item.AreaId)]
-	housePo.ImageUrl = utils.ConcatImgUrl(conf.NginxUrl, item.Index_image_url)
-	housePo.UserAvatar = utils.ConcatImgUrl(conf.NginxUrl, avatarUrl)
-	return housePo
-}
-func saveHouseImg(houseId int, imgUrl string) {
-	//提交协程任务，将imgPath存入数据库
-	utils.AntsPool.Pool.Submit(func() {
-		//先保存houseId 和 imgUrl
-		model.SaveMysqlHouseIdImg(houseId, imgUrl)
-		imgUrls := model.GetMysqlHouseImg(houseId)
-		utils.NewLog().Debug("imgUrls:", imgUrls)
-		data, _ := json.Marshal(&imgUrls)
-		model.SaveRedis(utils.ConcatRedisKey(conf.HouseImgRedisIndex, utils.IntToString(houseId)),
-			data, conf.HouseImgRedisTimeOut)
-	})
-}
-func setHouseDetailResp(house *po.HouseRedisPo, user *model.User,
-	comments *[]model.CommentPo, imgUrls *[]string) *kitex_gen.HouseDetailResp {
-	resp := &kitex_gen.HouseDetailResp{}
-	resp.Errno = utils.RECODE_OK
-	resp.Errmsg = utils.RecodeText(utils.RECODE_OK)
-	data := kitex_gen.HouseDetailData{}
-	data.UserId = int64(house.UserId)
-	houseDetail := &kitex_gen.HouseDetail{}
-	//set house信息
-	houseJson, _ := json.Marshal(house)
-	json.Unmarshal(houseJson, houseDetail)
-	//set user 信息
-	utils.NewLog().Debug("user:", user)
-	houseDetail.UserAvatar = utils.ConcatImgUrl(conf.NginxUrl, user.Avatar_url)
-	houseDetail.UserId = int64(user.ID)
-	houseDetail.UserName = user.Name
-	utils.NewLog().Debug("houseDetail:", houseDetail)
-	houseDetail.ImgUrls = *imgUrls
-	//评论信息
-	coms := make([]*kitex_gen.CommentInfo, 0)
-	for _, item := range *comments {
-		m := &kitex_gen.CommentInfo{}
-		m.Comment = item.Comment
-		m.Ctime = item.Ctime
-		m.UserName = item.UserName
-		coms = append(coms, m)
-	}
-	houseDetail.Comments = coms
-	utils.NewLog().Debug("houseDetail:", houseDetail)
-	data.House = houseDetail
-	resp.Data = &data
-	utils.NewLog().Debug("resp:", resp)
-	return resp
 
+//GetHouseHomeIndex 主页房源轮播
+func GetHouseHomeIndex(sessionId string) *kitex_gen.HouseSearchResp {
+	indexResp := &kitex_gen.HouseSearchResp{}
+	utils.NewLog().Debug("GetHouseHomeIndex sessionId:", sessionId)
+	redisResult := model.GetRedis(utils.ConcatRedisKey(conf.HouseHomePageRedisIndex, sessionId))
+	if string(redisResult.Data) != "" {
+		//不为空直接返回
+		indexResp.Errno = utils.RECODE_OK
+		indexResp.Errmsg = utils.RecodeText(utils.RECODE_OK)
+		houses := make([]*kitex_gen.HouseSearchInfo, 0)
+		json.Unmarshal(redisResult.Data, &houses)
+		indexResp.Data = &kitex_gen.SearchResp{Houses: houses}
+		return indexResp
+	}
+	//查不到查ES取前十的结果
+	searchReq := &kitex_gen.HouseSearchReq{Page: 1, Size: 10}
+	searchReq.SessionId = sessionId
+	searchResp := SearchHouse(searchReq)
+	indexResp.Errno = utils.RECODE_OK
+	indexResp.Errmsg = utils.RecodeText(utils.RECODE_OK)
+	indexResp.Data = &kitex_gen.SearchResp{Houses: searchResp.Data.Houses}
+	return indexResp
 }

@@ -9,6 +9,7 @@ import (
 	"ihome/service/utils"
 	"ihome/web/conf"
 	"io"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -38,15 +39,15 @@ func GetFromJson(json, key string) string {
 
 func CheckFile(ctx *gin.Context, imgIndex string) (resp map[string]interface{}, fileTYpe string, imgBase64 string) {
 	start := time.Now()
-	file, head, err := ctx.Request.FormFile(imgIndex)
-	//head, err := ctx.FormFile(imgIndex)
-	//file, _ := head.Open()
-	utils.NewLog().Debugf("upload time %s s:", time.Since(start))
-	//校验文件上传
+	//file, head, err := ctx.Request.FormFile(imgIndex)
+	head, err := ctx.FormFile(imgIndex)
 	if err != nil {
 		utils.NewLog().Debug("ctx.Request.FormFile error:", err)
 		return Response(RECODE_IOERR, nil), "", ""
 	}
+	file, _ := head.Open()
+	utils.NewLog().Debugf("upload time %s s:", time.Since(start))
+	//校验文件上传
 	utils.NewLog().Debug("house_image....")
 
 	fileType := strings.Split(head.Filename, ".")[1]
@@ -64,4 +65,32 @@ func CheckFile(ctx *gin.Context, imgIndex string) (resp map[string]interface{}, 
 	//base64编码
 	imageBase64 := base64.StdEncoding.EncodeToString(buf.Bytes())
 	return Response(RECODE_OK, nil), fileType, imageBase64
+}
+
+func TimeParse(t string) (time.Time, error) {
+	return time.ParseInLocation("2006-01-02", t, time.Local)
+}
+
+func CheckDays(ctx *gin.Context, startDay, endDay string) (int, error) {
+	sd, err := TimeParse(startDay)
+	if err != nil {
+		utils.NewLog().Info("utils.TimeParse sd error:", err)
+		ctx.JSON(http.StatusOK, Response(utils.RECODE_REQERR, nil))
+		return 0, err
+	}
+	ed, err2 := TimeParse(endDay)
+	if err2 != nil {
+		utils.NewLog().Info("utils.TimeParse ed error:", err)
+		ctx.JSON(http.StatusOK, Response(utils.RECODE_REQERR, nil))
+		return 0, err2
+	}
+	if sd.After(ed) {
+		utils.NewLog().Info("utils.After error:", err)
+		ctx.JSON(http.StatusOK, Response(utils.RECODE_REQERR, nil))
+		return 0, err2
+	}
+	sub := ed.Sub(sd)
+	days := sub.Hours() / 24
+	utils.NewLog().Debug("days:", days)
+	return int(days), nil
 }

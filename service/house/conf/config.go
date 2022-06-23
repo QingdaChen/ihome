@@ -4,15 +4,17 @@ import "time"
 
 // house服务
 const (
-	ServerIp              string = "192.168.31.219"
-	ServerPort            int    = 9002
-	ServerMaxConnections  int    = 1000
-	ServerMaxQPS          int    = 100
-	HouseInfoRedisIndex   string = "houseInfo"
-	HouseInfoRedisTimeOut        = 65535 * time.Hour //hour
-	HouseImgRedisIndex    string = "houseImages"
-	HouseImgRedisTimeOut         = 24 * 30 * time.Hour
-	HouseTaskTimeOut             = 5 * time.Second
+	ServerIp                  string = "192.168.31.219"
+	ServerPort                int    = 9002
+	ServerMaxConnections      int    = 1000
+	ServerMaxQPS              int    = 100
+	HouseInfoRedisIndex       string = "houseInfo"
+	HouseInfoRedisTimeOut            = 65535 * time.Hour //hour
+	HouseImgRedisIndex        string = "houseImages"
+	HouseImgRedisTimeOut             = 24 * 30 * time.Hour
+	HouseTaskTimeOut                 = 5 * time.Second
+	HouseHomePageRedisIndex          = "home_page_cache"
+	HouseHomePageRedisTimeOut        = 1 * time.Hour
 )
 
 // user服务
@@ -62,4 +64,11 @@ const (
 //nginx
 const (
 	NginxUrl string = "http://192.168.31.219:8888"
+)
+
+//elasticsearch
+const (
+	HouseESHost    string = "http://192.168.31.219:9200"
+	ESTryTimeLimit        = 3
+	ESTaskTimeOut         = 8 * time.Second
 )

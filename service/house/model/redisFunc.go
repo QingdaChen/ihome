@@ -32,6 +32,7 @@ func GetRedis(key string) kitex_gen.Response {
 	result, _ := conn.Get(ctx, key).Result()
 	//utils.NewLog().Info("GetRedis result...", result)
 	response := utils.HouseResponse(utils.RECODE_OK, []byte(result))
+
 	return response
 
 }

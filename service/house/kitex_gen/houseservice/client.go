@@ -16,6 +16,8 @@ type Client interface {
 	GetUserHouse(ctx context.Context, Req *kitex_gen.GetUserHouseRequest, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 	UploadHouseImg(ctx context.Context, Req *kitex_gen.UploadHouseImgReq, callOptions ...callopt.Option) (r *kitex_gen.Response, err error)
 	GetHouseDetail(ctx context.Context, Req *kitex_gen.GetHouseDetailReg, callOptions ...callopt.Option) (r *kitex_gen.HouseDetailResp, err error)
+	SearchHouse(ctx context.Context, Req *kitex_gen.HouseSearchReq, callOptions ...callopt.Option) (r *kitex_gen.HouseSearchResp, err error)
+	HouseHomeIndex(ctx context.Context, Req *kitex_gen.HouseHomeIndexReg, callOptions ...callopt.Option) (r *kitex_gen.HouseSearchResp, err error)
 }
 
 // NewClient creates a client for the service defined in IDL.
@@ -70,4 +72,14 @@ func (p *kHouseServiceClient) UploadHouseImg(ctx context.Context, Req *kitex_gen
 func (p *kHouseServiceClient) GetHouseDetail(ctx context.Context, Req *kitex_gen.GetHouseDetailReg, callOptions ...callopt.Option) (r *kitex_gen.HouseDetailResp, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.GetHouseDetail(ctx, Req)
+}
+
+func (p *kHouseServiceClient) SearchHouse(ctx context.Context, Req *kitex_gen.HouseSearchReq, callOptions ...callopt.Option) (r *kitex_gen.HouseSearchResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.SearchHouse(ctx, Req)
+}
+
+func (p *kHouseServiceClient) HouseHomeIndex(ctx context.Context, Req *kitex_gen.HouseHomeIndexReg, callOptions ...callopt.Option) (r *kitex_gen.HouseSearchResp, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.HouseHomeIndex(ctx, Req)
 }

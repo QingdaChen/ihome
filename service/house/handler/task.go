@@ -3,10 +3,11 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"ihome/service/elasticsearch"
+	"ihome/service/house/conf"
 	"ihome/service/house/model"
 	po "ihome/service/model"
 	"ihome/service/utils"
-	"ihome/web/conf"
 	"sync"
 )
 
@@ -69,5 +70,28 @@ func GetHouseImagesTask(ctx *context.Context, wg *sync.WaitGroup, houseId int, i
 			return
 		}
 
+	}
+}
+
+//SetESHouseTask  data:houseByte
+func SetESHouseTask(data []byte) {
+	esHousePo := &elasticsearch.ESHousePo{}
+	utils.NewLog().Debug("house data:", string(data))
+	//设置House字段
+	house := &model.House{}
+	json.Unmarshal(data, house)
+	json.Unmarshal(data, esHousePo)
+
+	esHousePo.HouseId = int64(house.ID)
+
+	//user信息 web端做
+	esHousePo.CreateTime = house.CreatedAt.Format(conf.MysqlTimeFormat)
+	x, _ := json.Marshal(esHousePo)
+	utils.NewLog().Debug("esHousePo:", string(x))
+	ctx, _ := context.WithTimeout(context.Background(), conf.ESTaskTimeOut)
+	esHousePos := []*elasticsearch.ESHousePo{esHousePo}
+	err := elasticsearch.HouseES.BatchAdd(ctx, esHousePos)
+	if err != nil {
+		utils.NewLog().Info("elasticsearch.HouseES.BatchAdd error:", err)
 	}
 }

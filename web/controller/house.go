@@ -169,3 +169,73 @@ func GetHouseDetail(ctx *gin.Context) {
 	utils.NewLog().Info("res:", response.Data)
 	ctx.JSON(http.StatusOK, response)
 }
+
+func SearchHouse(ctx *gin.Context) {
+	areaId := ctx.Query("aid")
+	startDay := ctx.Query("sd")
+	endDay := ctx.Query("ed")
+	sk := ctx.Query("sk")
+	page := ctx.Query("p")
+	utils.NewLog().Debugf("params: %s %s %s %s %s", areaId, startDay, endDay, sk, page)
+	req := house_kitex_gen.HouseSearchReq{}
+	p := int32(utils.PareInt(page))
+	sessionId, err := ctx.Cookie(conf.LoginCookieName)
+	utils.NewLog().Debug("sessionId:", sessionId)
+	if err != nil || sessionId == "" {
+		//sessionId 不存在或者过期直接返回
+		utils.NewLog().Info("ctx.Cookie error:", err)
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SESSIONERR, nil))
+		return
+	}
+	//校验参数合法性
+	if p < 0 {
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SERVERERR, nil))
+		return
+	}
+	if startDay != "" && endDay != "" {
+		days, err := utils.CheckDays(ctx, startDay, endDay)
+		if err != nil {
+			return
+		}
+		req = house_kitex_gen.HouseSearchReq{AreaId: int64(utils.PareInt(areaId)), SessionId: sessionId,
+			Days: int32(days), Page: p, Size: int32(conf.HouseSearchPageSize)}
+	} else {
+		req = house_kitex_gen.HouseSearchReq{AreaId: int64(utils.PareInt(areaId)), SessionId: sessionId,
+			Page: p, Size: int32(conf.HouseSearchPageSize)}
+	}
+	//调用house search服务
+	res, err3 := remote.RPC(ctx, conf.HouseServiceIndex, req)
+	if err3 != nil {
+		utils.NewLog().Info("remote.RPC error:", err3)
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SERVERERR, nil))
+		return
+	}
+	//更新成功
+	response := res.(*house_kitex_gen.HouseSearchResp)
+	utils.NewLog().Info("res:", response.Data)
+	ctx.JSON(http.StatusOK, response)
+}
+
+//HomePageIndex 获取首页轮播
+func HomePageIndex(ctx *gin.Context) {
+	//获得cookie
+	sessionId, err := ctx.Cookie(conf.LoginCookieName)
+	if err != nil || sessionId == "" {
+		//sessionId 不存在或者过期直接返回
+		utils.NewLog().Info("ctx.Cookie error:", err)
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SESSIONERR, nil))
+		return
+	}
+
+	req := house_kitex_gen.HouseHomeIndexReg{SessionId: sessionId}
+	res, err := remote.RPC(ctx, conf.HouseServiceIndex, req)
+	if err != nil {
+		utils.NewLog().Info("remote.RPC error:", err)
+		ctx.JSON(http.StatusOK, utils.Response(utils.RECODE_SERVERERR, nil))
+		return
+	}
+	//更新成功
+	response := res.(*house_kitex_gen.HouseSearchResp)
+	utils.NewLog().Info("res:", response)
+	ctx.JSON(http.StatusOK, response)
+}

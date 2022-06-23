@@ -34,8 +34,8 @@ message HouseDetailResp{
   HouseDetailData data = 3;
 }
 message HouseDetailData{
-  HouseDetail house =1 ;
-  int64 user_id =2;
+  HouseDetail house = 1 ;
+  int64 user_id = 2;
 }
 
 message HouseDetail{
@@ -46,7 +46,7 @@ message HouseDetail{
   repeated CommentInfo comments = 5;
   int64 deposit = 6;
   repeated int32 facilities = 7;
-  int64 hid  = 8; //house_id
+  int64 hid = 8; //house_id
   repeated string img_urls = 9;
   int32  max_days = 10;
   int32 min_days = 11;
@@ -71,10 +71,63 @@ message Response{
   bytes data = 3;
 }
 
+//房源搜索
+message HouseSearchReq{
+  int64  HouseId = 1;
+  int64  UserId = 2;
+  int64  AreaId = 3;
+  string Title = 4;
+  string Address = 5;
+  int32  RoomCount = 6;
+  int32  Acreage = 7;
+  int32  MinPrice = 8;
+  int32  MaxPrice = 9;
+  string Unit = 10;
+  int32  Capacity = 11;
+  string Beds = 12;
+  int32  Deposit = 13;
+  int32  Days = 14;
+  int32  OrderCount = 15;
+  int32  Page = 16;
+  int32  Size = 17;   //pageSize
+  string sessionId = 18;
+}
+
+message HouseSearchResp{
+  string errno = 1;
+  string errmsg = 2;
+  SearchResp data = 3;
+}
+
+message SearchResp{
+  int32 current_page = 1;
+  repeated HouseSearchInfo houses = 2;
+  int32 total_page = 3;
+}
+message HouseSearchInfo{
+  string address = 1;
+  string area_name = 2;
+  string ctime = 3; //时区问题
+  int64 house_id = 4;
+  string img_url = 5;
+  int32 order_count = 6;
+  int32 price = 7;
+  int32 room_count = 8;
+  string title = 9;
+  string user_avatar = 10;
+}
+
+//首页house轮播
+message HouseHomeIndexReg{
+  string sessionId = 1;
+}
+
 service HouseService{
   rpc GetArea(AreaRequest) returns (Response) {}
   rpc PubHouse(PubHouseRequest) returns (Response) {}
   rpc GetUserHouse(GetUserHouseRequest) returns (Response) {}
   rpc UploadHouseImg(UploadHouseImgReq) returns (Response) {} //上传房子图像
   rpc GetHouseDetail(GetHouseDetailReg) returns (HouseDetailResp) {} //获取房子详细信息
+  rpc SearchHouse(HouseSearchReq) returns (HouseSearchResp){} //搜索房源
+  rpc HouseHomeIndex(HouseHomeIndexReg) returns (HouseSearchResp){} //主页房源轮播
 }

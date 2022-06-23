@@ -131,3 +131,7 @@ func SessionAuth(ctx *gin.Context) {
 	ctx.Next()
 	return
 }
+
+func Index(ctx *gin.Context) {
+	ctx.Redirect(http.StatusTemporaryRedirect, "http://192.168.31.219:8088/home")
+}
