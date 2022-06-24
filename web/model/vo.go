@@ -55,3 +55,9 @@ type UserHouseVo struct {
 	UserAvatar string `json:"user_avatar" map:"user_avatar"`
 	//Facilities      []*Facility   `gorm:"many2many:house_facilities" json:"facilities"`                     //房屋设施   与设施表进行关联
 }
+
+type PostOrderReq struct {
+	HouseId   string `json:"house_id" binding:"required"`
+	StartDate string `json:"start_date" binding:"required"`
+	EndDate   string `json:"end_date" binding:"required"`
+}

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"ihome/conf"
 	house_kitex_gen "ihome/service/house/kitex_gen"
 	user_kitex_gen "ihome/service/user/kitex_gen"
 )
@@ -29,6 +30,7 @@ const (
 	RECODE_IOERR     = "4302"
 	RECODE_SERVERERR = "4500"
 	RECODE_UNKNOWERR = "4501"
+	RECODE_ACCEPTED  = "4502"
 )
 
 var recodeText = map[string]string{
@@ -53,6 +55,7 @@ var recodeText = map[string]string{
 	RECODE_SMSERR:     "短信失败",
 	RECODE_MOBILEERR:  "手机号错误",
 	RECODE_SMSEQERR:   "短信与图像验证码不相等",
+	RECODE_ACCEPTED:   "房子已经被预订",
 }
 
 func RecodeText(code string) string {
@@ -73,4 +76,13 @@ func HouseResponse(errCode string, data []byte) house_kitex_gen.Response {
 
 func HouseDetailResponse(errCode string, data *house_kitex_gen.HouseDetailData) house_kitex_gen.HouseDetailResp {
 	return house_kitex_gen.HouseDetailResp{Errno: errCode, Errmsg: RecodeText(errCode), Data: data}
+}
+
+func Response(code string, data interface{}) map[string]interface{} {
+	resp := make(map[string]interface{}, 3)
+	resp[conf.ErrorNoIndex] = code
+	resp[conf.ErrorMsgIndex] = RecodeText(code)
+	resp[conf.DataIndex] = data
+	return resp
+
 }

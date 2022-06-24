@@ -4,9 +4,9 @@ import (
 	"github.com/cloudwego/kitex/client"
 	"github.com/cloudwego/kitex/pkg/retry"
 	trace "github.com/kitex-contrib/tracer-opentracing"
+	"ihome/conf"
 	"ihome/service/captcha/kitex_gen/captchaservice"
-	"ihome/web/conf"
-	"ihome/web/utils"
+	"ihome/service/utils"
 	"strconv"
 	"time"
 )

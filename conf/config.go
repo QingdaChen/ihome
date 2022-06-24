@@ -39,6 +39,20 @@ const (
 	HouseSearchPageSize  int    = 10
 )
 
+//Order服务
+const (
+	OrderServerIp             string = "192.168.31.219"
+	OrderServerPort           int    = 9003
+	OrderServerIndex                 = "orderService"
+	OrderServerMaxConnections int    = 1000
+	OrderServerMaxQPS         int    = 100
+	OrderHouseRedisKey               = "house_order"
+	OrderNotAccept                   = "WAIT_ACCEPT"
+	OrderAccepted                    = "ACCEPTED"
+	OrderRedisTimeOut                = 65535 * time.Hour
+	OrderRedisLock                   = "order_lock_key"
+)
+
 //session
 const (
 	SessionRedisIP    string = "192.168.31.219"

@@ -5,6 +5,10 @@ option go_package = "./";
 message AreaRequest{
 
 }
+message  GetHouseInfoReq{
+  int64 houseId = 1;
+}
+
 
 message GetUserHouseRequest{
   string sessionId = 1;
@@ -130,4 +134,5 @@ service HouseService{
   rpc GetHouseDetail(GetHouseDetailReg) returns (HouseDetailResp) {} //获取房子详细信息
   rpc SearchHouse(HouseSearchReq) returns (HouseSearchResp){} //搜索房源
   rpc HouseHomeIndex(HouseHomeIndexReg) returns (HouseSearchResp){} //主页房源轮播
+  rpc GetHouseInfo(GetHouseInfoReq) returns (Response){} //主页房源轮播
 }

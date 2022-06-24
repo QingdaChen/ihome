@@ -1,0 +1,25 @@
+syntax = "proto3";
+package order;
+option go_package = "./";
+
+//生成订单
+message PostOrderReg{
+  string sessionId = 1;
+  int64 house_id = 2;
+  string start_date = 3;
+  string end_date = 4;
+}
+
+message PostOrderResp{
+  string errno = 1;
+  string errmsg = 2;
+  PostResp data = 3;
+}
+message PostResp{
+  int64 order_id = 1;
+}
+
+service OrderService{
+  rpc PostOrder(PostOrderReg) returns (PostOrderResp) {} //生成订单
+
+}

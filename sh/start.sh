@@ -12,4 +12,7 @@ elif [ "$1" = "house" ] ; then
 elif [ "$1" = "user" ] ; then
     cd ../service/user
     go run main.go handler.go
+elif [ "$1" = "order" ] ; then
+    cd ../service/order
+    go run main.go handler.go
 fi

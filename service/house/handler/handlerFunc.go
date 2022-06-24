@@ -3,12 +3,12 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"ihome/remote"
 	"ihome/service/elasticsearch"
 	"ihome/service/house/cache"
 	"ihome/service/house/conf"
 	"ihome/service/house/kitex_gen"
 	"ihome/service/house/model"
-	"ihome/service/house/remote"
 	po "ihome/service/model"
 	user_kitex_gen "ihome/service/user/kitex_gen"
 	"ihome/service/utils"
@@ -21,7 +21,7 @@ var ctx = context.Background()
 func PubHouse(sessionId string, houseMap map[string]interface{}) kitex_gen.Response {
 	//参数中的facilityId
 	fids := GetFacilityId(houseMap)
-	//查询redis获取session userId
+	//查询redis获取userInfo
 	sessionResp := model.GetRedis(conf.SessionLoginIndex + "_" + sessionId)
 	if utils.RECODE_OK != sessionResp.Errno {
 		utils.NewLog().Info("GetRedis error:", sessionResp)
@@ -309,12 +309,16 @@ func GetHouseHomeIndex(sessionId string) *kitex_gen.HouseSearchResp {
 	indexResp := &kitex_gen.HouseSearchResp{}
 	utils.NewLog().Debug("GetHouseHomeIndex sessionId:", sessionId)
 	redisResult := model.GetRedis(utils.ConcatRedisKey(conf.HouseHomePageRedisIndex, sessionId))
+	utils.NewLog().Debug("redisResult:", string(redisResult.Data))
 	if string(redisResult.Data) != "" {
 		//不为空直接返回
+		utils.NewLog().Debug("return redirect...")
 		indexResp.Errno = utils.RECODE_OK
 		indexResp.Errmsg = utils.RecodeText(utils.RECODE_OK)
 		houses := make([]*kitex_gen.HouseSearchInfo, 0)
-		json.Unmarshal(redisResult.Data, &houses)
+		housesStr := utils.GetFromJson(string(redisResult.Data), "houses")
+		json.Unmarshal([]byte(housesStr), &houses)
+		utils.NewLog().Debug("houses:", houses)
 		indexResp.Data = &kitex_gen.SearchResp{Houses: houses}
 		return indexResp
 	}

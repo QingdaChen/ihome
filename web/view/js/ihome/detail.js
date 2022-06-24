@@ -25,7 +25,7 @@ $(document).ready(function(){
 
             // resp.user_id为访问页面用户,resp.data.user_id为房东
             if (resp.data.user_id != resp.data.house.user_id) {
-                $(".book-house").attr("href", "/booking.html?hid="+resp.data.house.hid);
+                $(".book-house").attr("href", "/home/booking.html?hid="+resp.data.house.hid);
                 $(".book-house").show();
             }
             var mySwiper = new Swiper ('.swiper-container', {

@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"github.com/tidwall/gjson"
 	"strconv"
+	"time"
 )
 
 func PareInt(str string) int {
-	intRes, _ := strconv.ParseInt(string(str), 10, 32)
+	intRes, _ := strconv.ParseInt(str, 10, 32)
 	return int(intRes)
 
 }
@@ -22,6 +23,8 @@ func ConcatRedisKey(str1 string, val interface{}) string {
 		return str1 + "_" + IntToString(val.(int))
 	case string:
 		return str1 + "_" + val.(string)
+	case int64:
+		return str1 + "_" + IntToString(val.(int64))
 	}
 	return ""
 }
@@ -38,4 +41,31 @@ func IntToString(num interface{}) string {
 
 func GetFromJson(json, key string) string {
 	return gjson.Get(json, key).String()
+}
+
+func TimeParse(t string) (time.Time, error) {
+	//return time.ParseInLocation("2006-01-02 15:04:05", t, time.Local)
+	return time.ParseInLocation("2006-01-02", t, time.Local)
+}
+
+//GetDays 输入日期 yy-mm-dd HH:mm:ss
+func GetDays(startDay, endDay string) (int, error) {
+	sd, err := TimeParse(startDay)
+	if err != nil {
+		NewLog().Info("utils.TimeParse sd error:", err)
+		return 0, err
+	}
+	ed, err2 := TimeParse(endDay)
+	if err2 != nil {
+		NewLog().Info("utils.TimeParse ed error:", err)
+		return 0, err2
+	}
+	if sd.After(ed) {
+		NewLog().Info("utils.After error:", err)
+		return 0, err2
+	}
+	sub := ed.Sub(sd)
+	days := sub.Hours() / 24
+	NewLog().Debug("days:", days)
+	return int(days), nil
 }

@@ -1,13 +1,13 @@
 package remote
 
 import (
+	"context"
 	"errors"
-	"github.com/gin-gonic/gin"
-	"ihome/web/conf"
-	"ihome/web/utils"
+	"ihome/conf"
+	"ihome/service/utils"
 )
 
-func GetService(ctx *gin.Context, serviceName string) interface{} {
+func GetService(ctx *context.Context, serviceName string) interface{} {
 	var service interface{}
 	var err error
 	utils.NewLog().Info("serviceName:", serviceName)
@@ -19,6 +19,8 @@ func GetService(ctx *gin.Context, serviceName string) interface{} {
 		utils.NewLog().Info("init ...:", service, err)
 	case conf.HouseServiceIndex:
 		service, err = HouseService.Service, HouseService.Err
+	case conf.OrderServerIndex:
+		service, err = OrderService.Service, OrderService.Err
 	default:
 		utils.NewLog().Info("default")
 		service = nil

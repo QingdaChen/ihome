@@ -88,3 +88,13 @@ func (s *HouseServiceImpl) HouseHomeIndex(ctx context.Context, req *kitex_gen.Ho
 	}
 	return indexResp, nil
 }
+
+// GetHouseInfo implements the HouseServiceImpl interface.
+func (s *HouseServiceImpl) GetHouseInfo(ctx context.Context, req *kitex_gen.GetHouseInfoReq) (resp *kitex_gen.Response, err error) {
+	utils.NewLog().Debug("GetHouseInfo start...")
+	houseResp := handler.GetHouseInfo(int(req.HouseId))
+	if utils.RECODE_OK != houseResp.Errno {
+		utils.NewLog().Info("HouseHomeIndex error", houseResp)
+	}
+	return &houseResp, nil
+}

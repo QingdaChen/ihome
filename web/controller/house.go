@@ -3,10 +3,10 @@ package controller
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"ihome/remote"
 	house_kitex_gen "ihome/service/house/kitex_gen"
 	"ihome/web/conf"
 	"ihome/web/model"
-	"ihome/web/remote"
 	"ihome/web/utils"
 	"io/ioutil"
 	"net/http"

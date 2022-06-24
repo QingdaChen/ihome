@@ -71,6 +71,10 @@ func TimeParse(t string) (time.Time, error) {
 	return time.ParseInLocation("2006-01-02", t, time.Local)
 }
 
+//func TimeParse2(t string) (time.Time, error) {
+//	return time.ParseInLocation("2006-01-02 15:04:05", t, time.Local)
+//}
+
 func CheckDays(ctx *gin.Context, startDay, endDay string) (int, error) {
 	sd, err := TimeParse(startDay)
 	if err != nil {
@@ -93,4 +97,25 @@ func CheckDays(ctx *gin.Context, startDay, endDay string) (int, error) {
 	days := sub.Hours() / 24
 	utils.NewLog().Debug("days:", days)
 	return int(days), nil
+}
+
+func CheckDate(ctx *gin.Context, startDay, endDay string) bool {
+	sd, err := TimeParse(startDay)
+	if err != nil {
+		utils.NewLog().Info("utils.TimeParse sd error:", err)
+		ctx.JSON(http.StatusOK, Response(utils.RECODE_REQERR, nil))
+		return false
+	}
+	ed, err2 := TimeParse(endDay)
+	if err2 != nil {
+		utils.NewLog().Info("utils.TimeParse ed error:", err)
+		ctx.JSON(http.StatusOK, Response(utils.RECODE_REQERR, nil))
+		return false
+	}
+	if sd.After(ed) {
+		utils.NewLog().Info("utils.After error:", err)
+		ctx.JSON(http.StatusOK, Response(utils.RECODE_REQERR, nil))
+		return false
+	}
+	return true
 }

@@ -1,0 +1,1 @@
+kitex -module ihome -type protobuf -service order -I ./ order.proto

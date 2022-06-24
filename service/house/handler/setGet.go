@@ -91,6 +91,7 @@ func SetHouseDetailResp(house *po.HouseRedisPo, user *model.User,
 	//set house信息
 	houseJson, _ := json.Marshal(house)
 	json.Unmarshal(houseJson, houseDetail)
+	houseDetail.Hid = int64(house.ID)
 	//set user 信息
 	utils.NewLog().Debug("user:", user)
 	houseDetail.UserAvatar = utils.ConcatImgUrl(conf.NginxUrl, user.Avatar_url)
@@ -142,6 +143,7 @@ func SetHouseSearchData(req *kitex_gen.HouseSearchReq,
 		utils.NewLog().Debug("info:", string(infoJson))
 		info.ImgUrl = utils.ConcatImgUrl(conf.NginxUrl, house.ImageUrl)
 		info.UserAvatar = utils.ConcatImgUrl(conf.NginxUrl, house.UserAvatar)
+		info.AreaName = house.AreaName
 		searchData.Houses = append(searchData.Houses, info)
 	}
 	//启动协程存redis

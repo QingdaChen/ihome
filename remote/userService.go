@@ -4,7 +4,7 @@ import (
 	"github.com/cloudwego/kitex/client"
 	"github.com/cloudwego/kitex/pkg/retry"
 	trace "github.com/kitex-contrib/tracer-opentracing"
-	"ihome/service/house/conf"
+	"ihome/conf"
 	"ihome/service/user/kitex_gen/userservice"
 	"ihome/service/utils"
 	"strconv"

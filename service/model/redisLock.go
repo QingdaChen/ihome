@@ -44,11 +44,11 @@ func releaseLock(lock *redisLock.RedisLock) {
 	for {
 		//每隔 1s 2s 4s重试
 		err := Lock.Unlock()
-		time.Sleep(time.Second * i)
 		if err == nil || i > conf.RedisLockTimeOut {
 			//发送成功或者大于32s返回
 			break
 		}
+		time.Sleep(time.Second * i)
 		i = i * 2
 	}
 }

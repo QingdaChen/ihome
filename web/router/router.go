@@ -52,6 +52,8 @@ func InitRouters() *gin.Engine {
 		v1.POST("/houses/:id/images", controller.UploadHouseImg)
 		v1.GET("/houses/:id", controller.GetHouseDetail)
 
+		//订单
+		v1.POST("/orders", controller.PostOrders)
 	}
 
 	return router

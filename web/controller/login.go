@@ -1,14 +1,17 @@
 package controller
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
+	"ihome/remote"
 	user_kitex_gen "ihome/service/user/kitex_gen"
 	"ihome/web/conf"
 	"ihome/web/model"
-	"ihome/web/remote"
 	"ihome/web/utils"
 	"net/http"
 )
+
+var ctx, _ = context.WithTimeout(context.Background(), conf.RPCTimeOut)
 
 // GetSMSCd http://xx.com/api/v1.0/smscode/111?text=248484&id=9cd8faa9-5653-4f7c-b653-0a58a8a98c81
 func GetSMSCd(ctx *gin.Context) {
@@ -107,7 +110,7 @@ func SessionAuth(ctx *gin.Context) {
 
 	//连接user服务 查询session
 	req := user_kitex_gen.SessionAuthRequest{SessionId: sessionId}
-	res, err2 := remote.RPC(ctx, conf.UserServiceIndex, req)
+	res, err2 := remote.RPC(context.Background(), conf.UserServiceIndex, req)
 	utils.NewLog().Info("SessionAuthRequest result:", res, err2)
 	if err2 != nil {
 		utils.NewLog().Error("rpc SessionAuth error:", err2)
